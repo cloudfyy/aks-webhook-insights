@@ -4,8 +4,8 @@ kind: Deployment
 metadata:
   name: test-deploy1
   annotations:
-    appinsights.connstr: "This is STR"
-    appinsights.role: "This is ROLE"
+    appinsights-connstr: "This is STR"
+    appinsights-role: "This is ROLE"
 spec:
   selector:
     matchLabels:

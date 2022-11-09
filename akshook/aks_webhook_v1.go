@@ -21,8 +21,8 @@ var (
 )
 
 const (
-	INSIGHT_CONNSTR_KEY = "appinsights.connstr"
-	INSIGHT_ROLE_KEY    = "appinsights.role"
+	INSIGHT_CONNSTR_KEY = "appinsights-connstr"
+	INSIGHT_ROLE_KEY    = "appinsights-role"
 )
 
 type AksWebhookParam struct {
@@ -189,6 +189,10 @@ func (s *WebhookServer) mutate(ar *admissionv1.AdmissionReview) *admissionv1.Adm
 
 func mutationRequired(metadata *metav1.ObjectMeta) bool {
 	annotations := metadata.GetAnnotations()
+
+	if annotations == nil {
+		return false
+	}
 	for k, _ := range annotations {
 		klog.Infof("Key is %s", k)
 		if k == INSIGHT_CONNSTR_KEY || k == INSIGHT_ROLE_KEY {
@@ -200,6 +204,7 @@ func mutationRequired(metadata *metav1.ObjectMeta) bool {
 }
 
 func mutateYaml(content map[string]string) (patch []patchOperation) {
+
 	for k, v := range content {
 		patch = append(patch, patchOperation{
 			Op:   "add",
