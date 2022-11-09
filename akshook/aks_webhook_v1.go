@@ -3,7 +3,6 @@ package akshook
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/golang/glog"
 	"io/ioutil"
 	admissionv1 "k8s.io/api/admission/v1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -11,6 +10,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
+	"k8s.io/klog/v2"
 	"net/http"
 )
 
@@ -50,7 +50,7 @@ func (s *WebhookServer) Handler(writer http.ResponseWriter, request *http.Reques
 		}
 	}
 	if len(body) == 0 {
-		glog.Error("empty data body")
+		klog.Error("empty data body")
 		http.Error(writer, "empty data body", http.StatusBadRequest)
 		return
 	}
@@ -58,7 +58,7 @@ func (s *WebhookServer) Handler(writer http.ResponseWriter, request *http.Reques
 	// 校验 content-type
 	contentType := request.Header.Get("Content-Type")
 	if contentType != "application/json" {
-		glog.Errorf("Content-Type is %s, but expect application/json", contentType)
+		klog.Errorf("Content-Type is %s, but expect application/json", contentType)
 		http.Error(writer, "Content-Type invalid, expect application/json", http.StatusBadRequest)
 		return
 	}
@@ -67,7 +67,7 @@ func (s *WebhookServer) Handler(writer http.ResponseWriter, request *http.Reques
 	var admissionResponse *admissionv1.AdmissionResponse
 	requestedAdmissionReview := admissionv1.AdmissionReview{}
 	if _, _, err := deserializer.Decode(body, nil, &requestedAdmissionReview); err != nil {
-		glog.Errorf("Can't decode body: %v", err)
+		klog.Errorf("Can't decode body: %v", err)
 		admissionResponse = &admissionv1.AdmissionResponse{
 			Result: &metav1.Status{
 				Code:    http.StatusInternalServerError,
@@ -94,18 +94,18 @@ func (s *WebhookServer) Handler(writer http.ResponseWriter, request *http.Reques
 
 	}
 
-	glog.Infof("sending response: %v", responseAdmissionReview.Response)
+	klog.Infof("sending response: %v", responseAdmissionReview.Response)
 	// send response
 	respBytes, err := json.Marshal(responseAdmissionReview)
 	if err != nil {
-		glog.Errorf("Can't encode response: %v", err)
+		klog.Errorf("Can't encode response: %v", err)
 		http.Error(writer, fmt.Sprintf("Can't encode response: %v", err), http.StatusBadRequest)
 		return
 	}
-	glog.Info("Ready to write response...")
+	klog.Info("Ready to write response...")
 
 	if _, err := writer.Write(respBytes); err != nil {
-		glog.Errorf("Can't write response: %v", err)
+		klog.Errorf("Can't write response: %v", err)
 		http.Error(writer, fmt.Sprintf("Can't write reponse: %v", err), http.StatusBadRequest)
 	}
 }
@@ -118,14 +118,14 @@ func (s *WebhookServer) mutate(ar *admissionv1.AdmissionReview) *admissionv1.Adm
 		objectMeta *metav1.ObjectMeta
 	)
 
-	glog.Infof("AdmissionReview for Kind=%s, Namespace=%s Name=%s UID=%s",
+	klog.Infof("AdmissionReview for Kind=%s, Namespace=%s Name=%s UID=%s",
 		req.Kind.Kind, req.Namespace, req.Name, req.UID)
 
 	switch req.Kind.Kind {
 	case "Deployment":
 		var deployment appsv1.Deployment
 		if err := json.Unmarshal(req.Object.Raw, &deployment); err != nil {
-			glog.Errorf("Can't not unmarshal raw object: %v", err)
+			klog.Errorf("Can't not unmarshal raw object: %v", err)
 			return &admissionv1.AdmissionResponse{
 				Result: &metav1.Status{
 					Code:    http.StatusBadRequest,
@@ -138,7 +138,7 @@ func (s *WebhookServer) mutate(ar *admissionv1.AdmissionReview) *admissionv1.Adm
 	case "Service":
 		var service corev1.Service
 		if err := json.Unmarshal(req.Object.Raw, &service); err != nil {
-			glog.Errorf("Can't not unmarshal raw object: %v", err)
+			klog.Errorf("Can't not unmarshal raw object: %v", err)
 			return &admissionv1.AdmissionResponse{
 				Result: &metav1.Status{
 					Code:    http.StatusBadRequest,
@@ -157,7 +157,7 @@ func (s *WebhookServer) mutate(ar *admissionv1.AdmissionReview) *admissionv1.Adm
 	}
 
 	if !mutationRequired(objectMeta) {
-		fmt.Println("No need to Mutate")
+		klog.Info("No need to Mutate")
 		return &admissionv1.AdmissionResponse{
 			Allowed: true,
 		}
@@ -168,7 +168,7 @@ func (s *WebhookServer) mutate(ar *admissionv1.AdmissionReview) *admissionv1.Adm
 
 	patchBytes, err := json.Marshal(patch)
 	if err != nil {
-		glog.Errorf("patch marshal error: %v", err)
+		klog.Errorf("patch marshal error: %v", err)
 		return &admissionv1.AdmissionResponse{
 			Result: &metav1.Status{
 				Code:    http.StatusBadRequest,
@@ -190,6 +190,7 @@ func (s *WebhookServer) mutate(ar *admissionv1.AdmissionReview) *admissionv1.Adm
 func mutationRequired(metadata *metav1.ObjectMeta) bool {
 	annotations := metadata.GetAnnotations()
 	for k, _ := range annotations {
+		klog.Infof("Key is %s", k)
 		if k == INSIGHT_CONNSTR_KEY || k == INSIGHT_ROLE_KEY {
 			return true
 		}

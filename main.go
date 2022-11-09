@@ -6,7 +6,7 @@ import (
 	"crypto/tls"
 	"flag"
 	"fmt"
-	"github.com/golang/glog"
+	"k8s.io/klog/v2"
 	"net/http"
 	"os"
 	"os/signal"
@@ -31,7 +31,7 @@ func main() {
 
 	pair, err := tls.LoadX509KeyPair(param.CertFile, param.KeyFile)
 	if err != nil {
-		glog.Errorf("Failed to load key pair: %v", err)
+		klog.Errorf("Failed to load key pair: %v", err)
 	}
 
 	aksWebhookServer := &akshook.WebhookServer{
@@ -46,9 +46,9 @@ func main() {
 	aksWebhookServer.Server.Handler = mux
 
 	go func() {
-		fmt.Println("Server Started")
+		klog.Info("Server Started")
 		if err := aksWebhookServer.Server.ListenAndServeTLS("", ""); err != nil {
-			glog.Errorf("Failed to listen and serve webhook server: %v", err)
+			klog.Errorf("Failed to listen and serve webhook server: %v", err)
 		}
 	}()
 
