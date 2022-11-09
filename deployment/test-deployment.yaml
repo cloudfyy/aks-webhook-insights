@@ -4,7 +4,8 @@ kind: Deployment
 metadata:
   name: test-deploy1
   annotations:
-    AKS-Insight: "TRUE"
+    appinsights.connstr: "This is STR"
+    appinsights.role: "This is ROLE"
 spec:
   selector:
     matchLabels:

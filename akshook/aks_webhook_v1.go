@@ -157,6 +157,7 @@ func (s *WebhookServer) mutate(ar *admissionv1.AdmissionReview) *admissionv1.Adm
 	}
 
 	if !mutationRequired(objectMeta) {
+		fmt.Println("No need to Mutate")
 		return &admissionv1.AdmissionResponse{
 			Allowed: true,
 		}

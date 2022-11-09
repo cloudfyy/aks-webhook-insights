@@ -46,12 +46,12 @@ func main() {
 	aksWebhookServer.Server.Handler = mux
 
 	go func() {
+		fmt.Println("Server Started")
 		if err := aksWebhookServer.Server.ListenAndServeTLS("", ""); err != nil {
 			glog.Errorf("Failed to listen and serve webhook server: %v", err)
 		}
 	}()
 
-	glog.Info("Server Started")
 	catchSystemStopSignal(aksWebhookServer)
 	select {}
 }
