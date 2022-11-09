@@ -13,6 +13,15 @@ import (
 	"syscall"
 )
 
+func catchSystemStopSignal(server *akshook.WebhookServer) {
+	s := make(chan os.Signal, 1)
+	signal.Notify(s, os.Interrupt, os.Kill, syscall.SIGQUIT)
+	go func() {
+		<-s
+		server.Server.Shutdown(context.Background())
+	}()
+}
+
 func main() {
 	var param akshook.AKSWebhookParameters
 	flag.IntVar(&param.Port, "port", 443, "Webhook server port.")
@@ -43,12 +52,6 @@ func main() {
 	}()
 
 	glog.Info("Server Started")
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
-	<-c
-
-	err = aksWebhookServer.Server.Shutdown(context.Background())
-	if err != nil {
-		glog.Errorf("Shutdown server (Triggered by sys signal) Failed, Message: %s", err)
-	}
+	catchSystemStopSignal(aksWebhookServer)
+	select {}
 }

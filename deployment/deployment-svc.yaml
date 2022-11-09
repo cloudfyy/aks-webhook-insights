@@ -47,7 +47,7 @@ spec:
       serviceAccountName: aks-webhook-sa
       initContainers:
         - name: webhook-init
-          image: lincvic/akswebhookcert:v00
+          image: lincvic/akswebhookcert:v01
           imagePullPolicy: IfNotPresent
           env:
             - name: WEBHOOK_NAMESPACE
@@ -73,7 +73,6 @@ spec:
           volumeMounts:
             - name: webhook-certs
               mountPath: /etc/webhook/certs
-              readOnly: true
       volumes:
         - name: webhook-certs
           emptyDir: {}
