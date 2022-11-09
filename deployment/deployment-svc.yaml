@@ -11,7 +11,7 @@ metadata:
   name: aks-webhook-clusterrole
 rules:
   - verbs: ["*"]
-    resources: ["validatingwebhookconfigurations", "mutatingwebhookconfigurations"]
+    resources: ["mutatingwebhookconfigurations"]
     apiGroups: ["admissionregistration.k8s.io"]
 
 ---
@@ -63,7 +63,7 @@ spec:
               mountPath: /etc/webhook/certs
       containers:
         - name: webhook
-          image: lincvic/akswebhook:v01
+          image: lincvic/akswebhook:v03
           imagePullPolicy: IfNotPresent
           env:
             - name: WHITELIST_REGISTRIES

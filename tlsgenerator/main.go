@@ -154,7 +154,7 @@ func CreateAdmissionConfig(caCert *bytes.Buffer) error {
 			},
 			Webhooks: []admissionv1.MutatingWebhook{
 				{
-					Name: "aks-webhook",
+					Name: "io.layne.aks-webhook",
 					ClientConfig: admissionv1.WebhookClientConfig{
 						CABundle: caCert.Bytes(),
 						Service: &admissionv1.ServiceReference{
