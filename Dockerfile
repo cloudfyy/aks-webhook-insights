@@ -1,8 +1,20 @@
 FROM golang:1.18.4-alpine3.15 AS build
 ADD . /aks-webhook-insights
-RUN cd /aks-webhook-insights && go build -o aksWebhook
 
-FROM alpine:latest
+ENV CGO_ENABLED=0
+ENV GOOS=linux
+ENV GOARCH=amd64
+ENV GO111MODULE=on
+
+RUN cd /aks-webhook-insights && go build -o aksWebhook &&  \
+    cd ./tlsgenerator && go build -o aksWebhookCert
+
+FROM alpine:latest as webhook
 WORKDIR /app
-COPY --from=build /aks-webhook-insights /app
+COPY --from=build /aks-webhook-insights/aksWebhook /app
 ENTRYPOINT ./aksWebhook
+
+FROM alpine:latest as tlsgenerator
+WORKDIR /app
+COPY --from=build /aks-webhook-insights/tlsgenerator/aksWebhookCert /app
+ENTRYPOINT ./aksWebhookCert

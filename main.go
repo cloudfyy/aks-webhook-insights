@@ -13,11 +13,11 @@ import (
 	"syscall"
 )
 
-func main(){
+func main() {
 	var param akshook.AKSWebhookParameters
 	flag.IntVar(&param.Port, "port", 443, "Webhook server port.")
-	flag.StringVar(&param.CertFile, "tlsCertFile", "/etc/webhook/certs/cert.pem", "File containing the x509 Certificate for HTTPS.")
-	flag.StringVar(&param.KeyFile, "tlsKeyFile", "/etc/webhook/certs/key.pem", "File containing the x509 private key to --tlsCertFile.")
+	flag.StringVar(&param.CertFile, "tlsCertFile", "/etc/webhook/certs/tls.crt", "File containing the x509 Certificate for HTTPS.")
+	flag.StringVar(&param.KeyFile, "tlsKeyFile", "/etc/webhook/certs/tls.key", "File containing the x509 private key to --tlsCertFile.")
 	flag.Parse()
 
 	pair, err := tls.LoadX509KeyPair(param.CertFile, param.KeyFile)
@@ -26,8 +26,8 @@ func main(){
 	}
 
 	aksWebhookServer := &akshook.WebhookServer{
-		 Server: &http.Server{
-			Addr: fmt.Sprintf(":%v", param.Port),
+		Server: &http.Server{
+			Addr:      fmt.Sprintf(":%v", param.Port),
 			TLSConfig: &tls.Config{Certificates: []tls.Certificate{pair}},
 		},
 	}
