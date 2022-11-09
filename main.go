@@ -23,7 +23,7 @@ func catchSystemStopSignal(server *akshook.WebhookServer) {
 }
 
 func main() {
-	var param akshook.AKSWebhookParameters
+	var param akshook.AksWebhookParam
 	flag.IntVar(&param.Port, "port", 443, "Webhook server port.")
 	flag.StringVar(&param.CertFile, "tlsCertFile", "/etc/webhook/certs/tls.crt", "File containing the x509 Certificate for HTTPS.")
 	flag.StringVar(&param.KeyFile, "tlsKeyFile", "/etc/webhook/certs/tls.key", "File containing the x509 private key to --tlsCertFile.")
@@ -42,7 +42,7 @@ func main() {
 	}
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/mutate", aksWebhookServer.Serve)
+	mux.HandleFunc("/mutate", aksWebhookServer.Handler)
 	aksWebhookServer.Server.Handler = mux
 
 	go func() {
