@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"github.com/golang/glog"
 	"io/ioutil"
-	"k8s.io/api/admission/v1beta1"
-	admissionregistrationv1beta1 "k8s.io/api/admissionregistration/v1beta1"
+	"k8s.io/api/admission/v1"
+	admissionregistrationv1beta1 "k8s.io/api/admissionregistration/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
-	"k8s.io/kubernetes/pkg/apis/core/v1"
+	apicorev1 "k8s.io/kubernetes/pkg/apis/core/v1"
 	"net/http"
 )
 
@@ -20,7 +20,7 @@ var (
 	runtimeScheme = runtime.NewScheme()
 	codecs        = serializer.NewCodecFactory(runtimeScheme)
 	deserializer  = codecs.UniversalDeserializer()
-	defaulter = runtime.ObjectDefaulter(runtimeScheme)
+	defaulter     = runtime.ObjectDefaulter(runtimeScheme)
 )
 
 type WebhookServer struct {
@@ -43,17 +43,17 @@ type patchOperation struct {
 func init() {
 	_ = corev1.AddToScheme(runtimeScheme)
 	_ = admissionregistrationv1beta1.AddToScheme(runtimeScheme)
-	_ = v1.AddToScheme(runtimeScheme)
+	_ = apicorev1.AddToScheme(runtimeScheme)
 }
 
-func yamlUpdater(addedPatch *patchOperation) ([]byte, error){
+func yamlUpdater(addedPatch *patchOperation) ([]byte, error) {
 	var newYaml []patchOperation
 	newYaml = append(newYaml, *addedPatch)
 	return json.Marshal(newYaml)
 }
 
-func annotationSearcher(annotation map[string]string, key string, value string) bool{
-	for k, v := range annotation{
+func annotationSearcher(annotation map[string]string, key string, value string) bool {
+	for k, v := range annotation {
 		if k == key && v == value {
 			return true
 		}
@@ -62,19 +62,19 @@ func annotationSearcher(annotation map[string]string, key string, value string) 
 	return false
 }
 
-func (ws *WebhookServer) mutating(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionResponse{
+func (ws *WebhookServer) mutating(ar *v1.AdmissionReview) *v1.AdmissionResponse {
 	req := ar.Request
 	var annotations map[string]string
 	glog.Infof("AdmissionReview for Kind=%v, Namespace=%v UID=%v UID=%v patchOperation=%v UserInfo=%v",
 		req.Kind, req.Namespace, req.Name, req.UID, req.Operation, req.UserInfo)
 
-	switch req.Kind.Kind{
+	switch req.Kind.Kind {
 	case "Deployment":
 		var deploy appsv1.Deployment
 
 		if err := json.Unmarshal(req.Object.Raw, &deploy); err != nil {
 			glog.Errorf("Could not unmarshal raw object: %v", err)
-			return &v1beta1.AdmissionResponse{
+			return &v1.AdmissionResponse{
 				Result: &metav1.Status{
 					Message: err.Error(),
 				},
@@ -88,7 +88,7 @@ func (ws *WebhookServer) mutating(ar *v1beta1.AdmissionReview) *v1beta1.Admissio
 
 		if err := json.Unmarshal(req.Object.Raw, &service); err != nil {
 			glog.Errorf("Could not unmarshal raw object: %v", err)
-			return &v1beta1.AdmissionResponse{
+			return &v1.AdmissionResponse{
 				Result: &metav1.Status{
 					Message: err.Error(),
 				},
@@ -97,18 +97,18 @@ func (ws *WebhookServer) mutating(ar *v1beta1.AdmissionReview) *v1beta1.Admissio
 
 		annotations = service.GetAnnotations()
 	}
-	
+
 	patchTest := &patchOperation{
-		Op:    "add",
-		Path:  "/spec/template/metadata/annotations",
+		Op:   "add",
+		Path: "/spec/template/metadata/annotations",
 		Value: map[string]string{
-			"AKS-YAMLUPDATER":"TRUE",
+			"AKS-YAMLUPDATER": "TRUE",
 		},
 	}
 
-	if !annotationSearcher(annotations, "AKS-Insight", "TRUE"){
+	if !annotationSearcher(annotations, "AKS-Insight", "TRUE") {
 		glog.Info("Annotation Not Found, Skip Mutation")
-		return &v1beta1.AdmissionResponse{
+		return &v1.AdmissionResponse{
 			Allowed: true,
 		}
 	}
@@ -116,24 +116,25 @@ func (ws *WebhookServer) mutating(ar *v1beta1.AdmissionReview) *v1beta1.Admissio
 	byteResult, err := yamlUpdater(patchTest)
 	if err != nil {
 		glog.Errorf("Patch Error at yamlUpdater, Message: %s", err)
-		return &v1beta1.AdmissionResponse{
+		return &v1.AdmissionResponse{
 			Result: &metav1.Status{
 				Message: err.Error(),
 			},
 		}
 	}
 
-	return &v1beta1.AdmissionResponse{
+	return &v1.AdmissionResponse{
 		Allowed: true,
 		Patch:   byteResult,
-		PatchType: func() *v1beta1.PatchType {
-			pt := v1beta1.PatchTypeJSONPatch
+		PatchType: func() *v1.PatchType {
+			pt := v1.PatchTypeJSONPatch
 			return &pt
 		}(),
 	}
 }
 
-func (ws *WebhookServer) Serve(w http.ResponseWriter, r *http.Request){
+func (ws *WebhookServer) Serve(w http.ResponseWriter, r *http.Request) {
+	glog.Info("Now Processing Request")
 	var body []byte
 	if r.Body != nil {
 		if data, err := ioutil.ReadAll(r.Body); err == nil {
@@ -153,11 +154,11 @@ func (ws *WebhookServer) Serve(w http.ResponseWriter, r *http.Request){
 		return
 	}
 
-	var admissionResponse *v1beta1.AdmissionResponse
-	ar := v1beta1.AdmissionReview{}
+	var admissionResponse *v1.AdmissionResponse
+	ar := v1.AdmissionReview{}
 	if _, _, err := deserializer.Decode(body, nil, &ar); err != nil {
 		glog.Errorf("Can't decode body: %v", err)
-		admissionResponse = &v1beta1.AdmissionResponse{
+		admissionResponse = &v1.AdmissionResponse{
 			Result: &metav1.Status{
 				Message: err.Error(),
 			},
@@ -165,9 +166,10 @@ func (ws *WebhookServer) Serve(w http.ResponseWriter, r *http.Request){
 	} else {
 		fmt.Println(r.URL.Path)
 		admissionResponse = ws.mutating(&ar)
+		glog.Info("Mutating Request")
 	}
 
-	admissionReview := v1beta1.AdmissionReview{}
+	admissionReview := v1.AdmissionReview{}
 	if admissionResponse != nil {
 		admissionReview.Response = admissionResponse
 		if ar.Request != nil {
@@ -176,6 +178,7 @@ func (ws *WebhookServer) Serve(w http.ResponseWriter, r *http.Request){
 	}
 
 	resp, err := json.Marshal(admissionReview)
+	glog.Infof("Request Formatted success, %s", resp)
 	if err != nil {
 		glog.Errorf("Can't encode response: %v", err)
 		http.Error(w, fmt.Sprintf("could not encode response: %v", err), http.StatusInternalServerError)
@@ -187,4 +190,3 @@ func (ws *WebhookServer) Serve(w http.ResponseWriter, r *http.Request){
 	}
 
 }
-
