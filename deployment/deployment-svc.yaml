@@ -63,7 +63,7 @@ spec:
               mountPath: /etc/webhook/certs
       containers:
         - name: webhook
-          image: lincvic/akswebhook:v0.14
+          image: lincvic/akswebhook:v0.29
           imagePullPolicy: IfNotPresent
           env:
             - name: WHITELIST_REGISTRIES
