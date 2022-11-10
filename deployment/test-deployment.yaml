@@ -3,15 +3,15 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: test-deploy1
-  annotations:
-    appinsights-connstr: "This is STR"
-    appinsights-role: "This is ROLE"
 spec:
   selector:
     matchLabels:
       app: test1-mutate
   template:
     metadata:
+      annotations:
+        appinsights.connstr: "STR"
+        appinsights.role: "ROLE"
       labels:
         app: test1-mutate
     spec:
