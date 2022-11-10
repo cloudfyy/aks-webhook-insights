@@ -71,7 +71,7 @@ func (s *WebhookServer) Handler(writer http.ResponseWriter, request *http.Reques
 		return
 	}
 
-	// 校验 content-type
+	// Validate content-type
 	contentType := request.Header.Get("Content-Type")
 	if contentType != "application/json" {
 		klog.Errorf("Content-Type is %s, but expect application/json", contentType)
@@ -79,7 +79,7 @@ func (s *WebhookServer) Handler(writer http.ResponseWriter, request *http.Reques
 		return
 	}
 
-	// 数据序列化（validate、mutate）请求的数据都是 AdmissionReview
+	// Decode Admission Review
 	var admissionResponse *admissionv1.AdmissionResponse
 	requestedAdmissionReview := admissionv1.AdmissionReview{}
 	if _, _, err := deserializer.Decode(body, nil, &requestedAdmissionReview); err != nil {
@@ -91,15 +91,12 @@ func (s *WebhookServer) Handler(writer http.ResponseWriter, request *http.Reques
 			},
 		}
 	} else {
-		// 序列化成功，也就是说获取到了请求的 AdmissionReview 的数据
 		if request.URL.Path == "/mutate" {
 			admissionResponse = s.mutateJsonDiff(&requestedAdmissionReview)
 		}
 	}
 
-	// 构造返回的 AdmissionReview 这个结构体
 	responseAdmissionReview := admissionv1.AdmissionReview{}
-	// admission/v1
 	responseAdmissionReview.APIVersion = requestedAdmissionReview.APIVersion
 	responseAdmissionReview.Kind = requestedAdmissionReview.Kind
 	if admissionResponse != nil {
