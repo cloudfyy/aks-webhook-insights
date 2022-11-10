@@ -4,8 +4,8 @@ kind: Deployment
 metadata:
   name: test-deploy1
   annotations:
-    appinsights-connstr: "This is STR"
-    appinsights-role: "This is ROLE"
+    appinsights.connstr: InstrumentationKey=ed9baecd-d00e-46fd-a584-baefb918ca65;IngestionEndpoint=https://japaneast-1.in.applicationinsights.azure.com/;LiveEndpoint=https://japaneast.livediagnostics.monitor.azure.com/
+    appinsights.role: department-service
 spec:
   selector:
     matchLabels:

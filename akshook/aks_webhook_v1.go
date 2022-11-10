@@ -21,8 +21,21 @@ var (
 )
 
 const (
-	INSIGHT_CONNSTR_KEY = "appinsights-connstr"
-	INSIGHT_ROLE_KEY    = "appinsights-role"
+	INSIGHT_CONNSTR = "appinsights-connstr"
+	INSIGHT_ROLE    = "appinsights-role"
+
+	INIT_NAME  = "copy"
+	INIT_IMAGE = "nikawang.azurecr.io/spring/app-insights-agent:v1"
+)
+
+var (
+	INIT_COMMAND  = []string{"/bin/sh", "-c", "source /app/init-appinsights.sh; cp /app/* /config/"}
+	INIT_VOLMOUNT = []corev1.VolumeMount{
+		corev1.VolumeMount{
+			Name:      "appinsights-config",
+			MountPath: "/config/",
+		},
+	}
 )
 
 type AksWebhookParam struct {
@@ -77,7 +90,7 @@ func (s *WebhookServer) Handler(writer http.ResponseWriter, request *http.Reques
 	} else {
 		// 序列化成功，也就是说获取到了请求的 AdmissionReview 的数据
 		if request.URL.Path == "/mutate" {
-			admissionResponse = s.mutate(&requestedAdmissionReview)
+			admissionResponse = s.mutatePods(&requestedAdmissionReview)
 		}
 	}
 
@@ -107,6 +120,88 @@ func (s *WebhookServer) Handler(writer http.ResponseWriter, request *http.Reques
 	if _, err := writer.Write(respBytes); err != nil {
 		klog.Errorf("Can't write response: %v", err)
 		http.Error(writer, fmt.Sprintf("Can't write reponse: %v", err), http.StatusBadRequest)
+	}
+}
+
+func (s *WebhookServer) mutatePods(ar *admissionv1.AdmissionReview) *admissionv1.AdmissionResponse {
+
+	klog.Infof("MutatePods AdmissionReview for Kind=%s, Namespace=%s Name=%s UID=%s",
+		ar.Request.Kind.Kind, ar.Request.Namespace, ar.Request.Name, ar.Request.UID)
+
+	pod := &corev1.Pod{}
+	if err := json.Unmarshal(ar.Request.Object.Raw, pod); err != nil {
+		klog.Errorf("request unmarshal error: %v", err)
+		return &admissionv1.AdmissionResponse{
+			Result: &metav1.Status{
+				Code:    http.StatusBadRequest,
+				Message: err.Error(),
+			},
+		}
+	}
+	klog.Infof("Pods Found: %+v", pod)
+
+	annotationMap := pod.GetAnnotations()
+	klog.Infof("Annotation Found: %s", annotationMap)
+	if !mutationRequired(annotationMap) {
+		klog.Info("No need to Mutate")
+		return &admissionv1.AdmissionResponse{
+			Allowed: true,
+		}
+	}
+
+	INIT_ENV := []corev1.EnvVar{
+		corev1.EnvVar{
+			Name:  "CONNECTION_STRING",
+			Value: annotationMap[INSIGHT_CONNSTR],
+		},
+		corev1.EnvVar{
+			Name:  "ROLE_NAME",
+			Value: annotationMap[INSIGHT_ROLE],
+		},
+	}
+	pod.Spec.InitContainers = append(pod.Spec.InitContainers, corev1.Container{
+		Name:         INIT_NAME,
+		Image:        INIT_IMAGE,
+		Command:      INIT_COMMAND,
+		Env:          INIT_ENV,
+		VolumeMounts: INIT_VOLMOUNT,
+	})
+
+	klog.Infof("Add initContainer: %+v", pod.Spec.InitContainers)
+
+	initConinterBytes, err := json.Marshal(&pod.Spec.InitContainers)
+	if err != nil {
+		klog.Errorf("Init Container unmarshal error: %v", err)
+		return &admissionv1.AdmissionResponse{
+			Result: &metav1.Status{
+				Code:    http.StatusBadRequest,
+				Message: err.Error(),
+			},
+		}
+	}
+
+	patchBytes, err := json.Marshal(patchOperation{
+		Op:    "add",
+		Path:  "/spec/template/spec",
+		Value: initConinterBytes,
+	})
+	if err != nil {
+		klog.Errorf("patch marshal error: %v", err)
+		return &admissionv1.AdmissionResponse{
+			Result: &metav1.Status{
+				Code:    http.StatusBadRequest,
+				Message: err.Error(),
+			},
+		}
+	}
+
+	return &admissionv1.AdmissionResponse{
+		Allowed: true,
+		Patch:   patchBytes,
+		PatchType: func() *admissionv1.PatchType {
+			pt := admissionv1.PatchTypeJSONPatch
+			return &pt
+		}(),
 	}
 }
 
@@ -156,7 +251,7 @@ func (s *WebhookServer) mutate(ar *admissionv1.AdmissionReview) *admissionv1.Adm
 		}
 	}
 
-	if !mutationRequired(objectMeta) {
+	if !mutationRequired(objectMeta.GetAnnotations()) {
 		klog.Info("No need to Mutate")
 		return &admissionv1.AdmissionResponse{
 			Allowed: true,
@@ -187,20 +282,22 @@ func (s *WebhookServer) mutate(ar *admissionv1.AdmissionReview) *admissionv1.Adm
 	}
 }
 
-func mutationRequired(metadata *metav1.ObjectMeta) bool {
-	annotations := metadata.GetAnnotations()
+func mutationRequired(annotations map[string]string) bool {
+
+	result := false
 
 	if annotations == nil {
-		return false
+		return result
 	}
+
 	for k, _ := range annotations {
 		klog.Infof("Key is %s", k)
-		if k == INSIGHT_CONNSTR_KEY || k == INSIGHT_ROLE_KEY {
-			return true
+		if k == INSIGHT_CONNSTR || k == INSIGHT_ROLE {
+			result = true
 		}
 	}
 
-	return false
+	return result
 }
 
 func mutateYaml(content map[string]string) (patch []patchOperation) {
