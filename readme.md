@@ -68,8 +68,3 @@ kubectl apply -f ./deployment/test-deployment.yaml
 ```yaml
 kubectl get deploy test-deploy1 -o yaml
 ```
-
-### Output Example
-```yaml
-kubectl get deploy test-deploy1 -o yaml
-```
