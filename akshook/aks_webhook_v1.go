@@ -23,14 +23,6 @@ var (
 	logPatchedYAML = true
 )
 
-const (
-	INSIGHT_CONNSTR = "appinsights.connstr"
-	INSIGHT_ROLE    = "appinsights.role"
-
-	INIT_NAME  = "copy"
-	INIT_IMAGE = "nikawang.azurecr.io/spring/app-insights-agent:v1"
-)
-
 var (
 	INIT_COMMAND  = []string{"/bin/sh", "-c", "source /app/init-appinsights.sh; cp /app/* /config/"}
 	INIT_VOLMOUNT = []corev1.VolumeMount{
@@ -39,6 +31,14 @@ var (
 			MountPath: "/config/",
 		},
 	}
+)
+
+const (
+	INSIGHT_CONNSTR = "appinsights.connstr"
+	INSIGHT_ROLE    = "appinsights.role"
+
+	INIT_NAME  = "copy"
+	INIT_IMAGE = "nikawang.azurecr.io/spring/app-insights-agent:v1"
 )
 
 type AksWebhookParam struct {
@@ -335,7 +335,7 @@ func mutateContainers(deploy *corev1.PodSpec, annotations map[string]string) (re
 				VolumeMounts: INIT_VOLMOUNT,
 			},
 		}
-		klog.Info("\nmutate add initContainer sucess!")
+		klog.Info("\nmutate add initContainer success!")
 	}
 
 	deploy.Containers[0].Command = []string{"/bin/sh", "-c", "cp /config/* /app/ ; java -javaagent:applicationinsights-agent-3.3.1.jar -jar department-service-1.2-SNAPSHOT.jar"}
