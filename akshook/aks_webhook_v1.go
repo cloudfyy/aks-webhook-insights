@@ -3,6 +3,8 @@ package akshook
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/ghodss/yaml"
+	"github.com/wI2L/jsondiff"
 	"io/ioutil"
 	admissionv1 "k8s.io/api/admission/v1"
 	appsv1 "k8s.io/api/apps/v1"
@@ -15,14 +17,28 @@ import (
 )
 
 var (
-	runtimeScheme = runtime.NewScheme()
-	codeFactory   = serializer.NewCodecFactory(runtimeScheme)
-	deserializer  = codeFactory.UniversalDeserializer()
+	runtimeScheme  = runtime.NewScheme()
+	codeFactory    = serializer.NewCodecFactory(runtimeScheme)
+	deserializer   = codeFactory.UniversalDeserializer()
+	logPatchedYAML = true
+)
+
+var (
+	INIT_COMMAND  = []string{"/bin/sh", "-c", "source /app/init-appinsights.sh; cp /app/* /config/"}
+	INIT_VOLMOUNT = []corev1.VolumeMount{
+		corev1.VolumeMount{
+			Name:      "appinsights-config",
+			MountPath: "/config/",
+		},
+	}
 )
 
 const (
-	INSIGHT_CONNSTR_KEY = "appinsights.connstr"
-	INSIGHT_ROLE_KEY    = "appinsights.role"
+	INSIGHT_CONNSTR = "appinsights.connstr"
+	INSIGHT_ROLE    = "appinsights.role"
+
+	INIT_NAME  = "copy"
+	INIT_IMAGE = "nikawang.azurecr.io/spring/app-insights-agent:v1"
 )
 
 type AksWebhookParam struct {
@@ -55,7 +71,7 @@ func (s *WebhookServer) Handler(writer http.ResponseWriter, request *http.Reques
 		return
 	}
 
-	// 校验 content-type
+	// Validate content-type
 	contentType := request.Header.Get("Content-Type")
 	if contentType != "application/json" {
 		klog.Errorf("Content-Type is %s, but expect application/json", contentType)
@@ -63,7 +79,7 @@ func (s *WebhookServer) Handler(writer http.ResponseWriter, request *http.Reques
 		return
 	}
 
-	// 数据序列化（validate、mutate）请求的数据都是 AdmissionReview
+	// Decode Admission Review
 	var admissionResponse *admissionv1.AdmissionResponse
 	requestedAdmissionReview := admissionv1.AdmissionReview{}
 	if _, _, err := deserializer.Decode(body, nil, &requestedAdmissionReview); err != nil {
@@ -75,15 +91,12 @@ func (s *WebhookServer) Handler(writer http.ResponseWriter, request *http.Reques
 			},
 		}
 	} else {
-		// 序列化成功，也就是说获取到了请求的 AdmissionReview 的数据
 		if request.URL.Path == "/mutate" {
-			admissionResponse = s.mutate(&requestedAdmissionReview)
+			admissionResponse = s.mutateJsonDiff(&requestedAdmissionReview)
 		}
 	}
 
-	// 构造返回的 AdmissionReview 这个结构体
 	responseAdmissionReview := admissionv1.AdmissionReview{}
-	// admission/v1
 	responseAdmissionReview.APIVersion = requestedAdmissionReview.APIVersion
 	responseAdmissionReview.Kind = requestedAdmissionReview.Kind
 	if admissionResponse != nil {
@@ -110,12 +123,96 @@ func (s *WebhookServer) Handler(writer http.ResponseWriter, request *http.Reques
 	}
 }
 
-func (s *WebhookServer) mutate(ar *admissionv1.AdmissionReview) *admissionv1.AdmissionResponse {
+func (s *WebhookServer) mutatePods(ar *admissionv1.AdmissionReview) *admissionv1.AdmissionResponse {
+
+	klog.Infof("MutatePods AdmissionReview for Kind=%s, Namespace=%s Name=%s UID=%s",
+		ar.Request.Kind.Kind, ar.Request.Namespace, ar.Request.Name, ar.Request.UID)
+
+	pod := &corev1.PodTemplateSpec{}
+	if err := json.Unmarshal(ar.Request.Object.Raw, pod); err != nil {
+		klog.Errorf("request unmarshal error: %v", err)
+		return &admissionv1.AdmissionResponse{
+			Result: &metav1.Status{
+				Code:    http.StatusBadRequest,
+				Message: err.Error(),
+			},
+		}
+	}
+	klog.Infof("Pods Found: %+v", pod)
+
+	annotationMap := pod.ObjectMeta.GetAnnotations()
+	klog.Infof("Annotation Found: %s", annotationMap)
+	if !mutationRequired(annotationMap) {
+		klog.Info("No need to Mutate")
+		return &admissionv1.AdmissionResponse{
+			Allowed: true,
+		}
+	}
+
+	klog.Infof("Mutating YAML ...")
+	INIT_ENV := []corev1.EnvVar{
+		corev1.EnvVar{
+			Name:  "CONNECTION_STRING",
+			Value: annotationMap[INSIGHT_CONNSTR],
+		},
+		corev1.EnvVar{
+			Name:  "ROLE_NAME",
+			Value: annotationMap[INSIGHT_ROLE],
+		},
+	}
+	pod.Spec.InitContainers = append(pod.Spec.InitContainers, corev1.Container{
+		Name:         INIT_NAME,
+		Image:        INIT_IMAGE,
+		Command:      INIT_COMMAND,
+		Env:          INIT_ENV,
+		VolumeMounts: INIT_VOLMOUNT,
+	})
+
+	klog.Infof("Add initContainer: %+v", pod.Spec.InitContainers)
+
+	initContainerBytes, err := json.Marshal(&pod.Spec.InitContainers)
+	if err != nil {
+		klog.Errorf("Init Container unmarshal error: %v", err)
+		return &admissionv1.AdmissionResponse{
+			Result: &metav1.Status{
+				Code:    http.StatusBadRequest,
+				Message: err.Error(),
+			},
+		}
+	}
+
+	patch := []patchOperation{
+		patchOperation{
+			Op:    "add",
+			Path:  "/spec/template/spec",
+			Value: initContainerBytes,
+		},
+	}
+	patchBytes, err := json.Marshal(&patch)
+	if err != nil {
+		klog.Errorf("patch marshal error: %v", err)
+		return &admissionv1.AdmissionResponse{
+			Result: &metav1.Status{
+				Code:    http.StatusBadRequest,
+				Message: err.Error(),
+			},
+		}
+	}
+
+	patchType := admissionv1.PatchTypeJSONPatch
+	return &admissionv1.AdmissionResponse{
+		Allowed:   true,
+		Patch:     patchBytes,
+		PatchType: &patchType,
+	}
+}
+
+func (s *WebhookServer) mutateJsonDiff(ar *admissionv1.AdmissionReview) *admissionv1.AdmissionResponse {
 	// Deployment、Service -> annotations： AnnotationMutateKey， AnnotationStatusKey
 	req := ar.Request
 
 	var (
-		objectMeta *metav1.ObjectMeta
+		deployment appsv1.Deployment
 	)
 
 	klog.Infof("AdmissionReview for Kind=%s, Namespace=%s Name=%s UID=%s",
@@ -134,19 +231,11 @@ func (s *WebhookServer) mutate(ar *admissionv1.AdmissionReview) *admissionv1.Adm
 			}
 
 		}
-		objectMeta = &deployment.ObjectMeta
 	case "Service":
-		var service corev1.Service
-		if err := json.Unmarshal(req.Object.Raw, &service); err != nil {
-			klog.Errorf("Can't not unmarshal raw object: %v", err)
-			return &admissionv1.AdmissionResponse{
-				Result: &metav1.Status{
-					Code:    http.StatusBadRequest,
-					Message: err.Error(),
-				},
-			}
+		klog.Errorf("No need to Mutate Service")
+		return &admissionv1.AdmissionResponse{
+			Allowed: true,
 		}
-		objectMeta = &service.ObjectMeta
 	default:
 		return &admissionv1.AdmissionResponse{
 			Result: &metav1.Status{
@@ -156,17 +245,40 @@ func (s *WebhookServer) mutate(ar *admissionv1.AdmissionReview) *admissionv1.Adm
 		}
 	}
 
-	if !mutationRequired(objectMeta) {
+	if !mutationRequired(deployment.ObjectMeta.GetAnnotations()) {
 		klog.Info("No need to Mutate")
 		return &admissionv1.AdmissionResponse{
 			Allowed: true,
 		}
 	}
 
-	var patch []patchOperation
-	patch = append(patch, mutateYaml(objectMeta.GetAnnotations())...)
+	newDeploy := deployment.DeepCopy()
+	newPodSpec := mutateContainers(&newDeploy.Spec.Template.Spec, deployment.ObjectMeta.GetAnnotations())
 
-	patchBytes, err := json.Marshal(patch)
+	if logPatchedYAML {
+		klog.Info("\n---------begin mumated yaml---------")
+		bytes, err := json.Marshal(newPodSpec)
+		if err == nil {
+			yamlStr, err := yaml.JSONToYAML(bytes)
+			if err == nil {
+				klog.Info("\n" + string(yamlStr))
+			}
+		}
+		klog.Info("\n---------ended mumated yaml---------")
+	}
+
+	patch, err := jsondiff.Compare(deployment, newDeploy)
+	if err != nil {
+		klog.Errorf("json diff marshal error: %v", err)
+		return &admissionv1.AdmissionResponse{
+			Result: &metav1.Status{
+				Code:    http.StatusBadRequest,
+				Message: err.Error(),
+			},
+		}
+	}
+
+	patchBytes, err := json.MarshalIndent(patch, "", "    ")
 	if err != nil {
 		klog.Errorf("patch marshal error: %v", err)
 		return &admissionv1.AdmissionResponse{
@@ -187,29 +299,47 @@ func (s *WebhookServer) mutate(ar *admissionv1.AdmissionReview) *admissionv1.Adm
 	}
 }
 
-func mutationRequired(metadata *metav1.ObjectMeta) bool {
-	annotations := metadata.GetAnnotations()
+func mutationRequired(annotations map[string]string) bool {
 
-	if annotations == nil {
-		return false
+	klog.Infof("Inside mutated Required, annotations : %s", annotations)
+
+	if _, ok := annotations[INSIGHT_CONNSTR]; ok {
+		return true
 	}
 
-	if annotations[INSIGHT_CONNSTR_KEY] != "" && annotations[INSIGHT_ROLE_KEY] != "" {
+	if _, ok := annotations[INSIGHT_ROLE]; ok {
 		return true
 	}
 
 	return false
 }
 
-func mutateYaml(content map[string]string) (patch []patchOperation) {
-
-	for k, v := range content {
-		patch = append(patch, patchOperation{
-			Op:    "replace",
-			Path:  "/spec/template/annotations/" + k,
-			Value: v,
-		})
+func mutateContainers(deploy *corev1.PodSpec, annotations map[string]string) (result *corev1.PodSpec) {
+	INIT_ENV := []corev1.EnvVar{
+		corev1.EnvVar{
+			Name:  "CONNECTION_STRING",
+			Value: annotations[INSIGHT_CONNSTR],
+		},
+		corev1.EnvVar{
+			Name:  "ROLE_NAME",
+			Value: annotations[INSIGHT_ROLE],
+		},
 	}
 
-	return
+	if len(deploy.InitContainers) == 0 {
+		deploy.InitContainers = []corev1.Container{
+			{
+				Name:         INIT_NAME,
+				Image:        INIT_IMAGE,
+				Command:      INIT_COMMAND,
+				Env:          INIT_ENV,
+				VolumeMounts: INIT_VOLMOUNT,
+			},
+		}
+		klog.Info("\nmutate add initContainer success!")
+	}
+
+	deploy.Containers[0].Command = []string{"/bin/sh", "-c", "cp /config/* /app/ ; java -javaagent:applicationinsights-agent-3.3.1.jar -jar department-service-1.2-SNAPSHOT.jar"}
+
+	return deploy
 }
