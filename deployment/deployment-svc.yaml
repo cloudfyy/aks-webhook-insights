@@ -47,7 +47,7 @@ spec:
       serviceAccountName: aks-webhook-sa
       initContainers:
         - name: webhook-init
-          image: cloudfyy/akswebhookcert:v01
+          image: cloudfyy/akswebhookcert:v02
           imagePullPolicy: IfNotPresent
           env:
             - name: WEBHOOK_NAMESPACE
@@ -63,7 +63,7 @@ spec:
               mountPath: /etc/webhook/certs
       containers:
         - name: webhook
-          image: cloudfyy/akswebhook:v0.29
+          image: cloudfyy/akswebhook:v0.30
           imagePullPolicy: IfNotPresent
           env:
             - name: WHITELIST_REGISTRIES
