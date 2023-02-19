@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: department-service
+spec:
+  selector:
+    matchLabels:
+      app: department-service
+  replicas: 1 # tells deployment to run 2 pods matching the template
+  template:
+    metadata:
+      labels:
+        app: department-service
+    spec:
+      initContainers:
+       - name: copy
+         image: nikawang.azurecr.io/spring/app-insights-agent:v1
+         command: ["/bin/sh", "-c", "source /app/init-appinsights.sh; cp /app/* /config/"]
+         env:
+         - name: CONNECTION_STRING
+           value: "InstrumentationKey=ed9baecd-d00e-46fd-a584-baefb918ca65;IngestionEndpoint=https://japaneast-1.in.applicationinsights.azure.com/;LiveEndpoint=https://japaneast.livediagnostics.monitor.azure.com/"
+         - name: ROLE_NAME
+           value: "department-service"
+         volumeMounts:
+         - name: appinsights-config
+           mountPath: /config/
+      containers:
+      - name: department-service
+        image: nikawang.azurecr.io/spring/department-service:v11-noagent
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: appinsights-config
+          mountPath: /config/
+        command: ["/bin/sh", "-c", "cp /config/* /app/ ; java -javaagent:applicationinsights-agent-3.3.1.jar -jar department-service-1.2-SNAPSHOT.jar"]
+      volumes: 
+      - name: appinsights-config
+        emptyDir: {}
+
+
+
+
+
+
