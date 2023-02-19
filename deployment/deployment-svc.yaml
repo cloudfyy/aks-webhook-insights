@@ -63,7 +63,7 @@ spec:
               mountPath: /etc/webhook/certs
       containers:
         - name: webhook
-          image: cloudfyy/akswebhook:v0.30
+          image: cloudfyy/akswebhook:0.30
           imagePullPolicy: IfNotPresent
           env:
             - name: WHITELIST_REGISTRIES
