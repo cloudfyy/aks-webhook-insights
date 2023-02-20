@@ -1,0 +1,10 @@
+apiVersion: v1
+appVersion: "0.9.1"
+description: A Helm chart for Application Monitoring
+name: appMonitoring
+version: 0.9.1
+keywords:
+  - Azure
+    Application Monitoring
+    AKS
+home: https://github.com/microsoft/Application-Insights-K8s-Codeless-Attach

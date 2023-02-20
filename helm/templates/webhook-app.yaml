@@ -1,0 +1,70 @@
+{{ if and (eq .Values.app.kVerMajor "1") (eq .Values.app.kVerMinor "15") }}
+apiVersion: apps/v1beta1
+{{ else }}
+apiVersion: apps/v1
+{{ end }}
+kind: Deployment
+metadata:
+  name: {{ .Values.app.name }}
+  {{- template "common.metadata" . }}
+spec:
+  {{ if and (eq .Values.app.kVerMajor "1") (gt .Values.app.kVerMinor "15") }}
+  selector:
+    matchLabels:
+      app: {{ .Values.app.name }}
+  {{ end }}
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.app.name }}
+    spec:
+      nodeSelector: {{ .Values.nodeSelector }}
+      containers:
+        - name: {{ .Values.app.name }}
+          image: {{ .Values.app.image }}
+          imagePullPolicy: IfNotPresent
+          env: 
+            - name: AGENTS_IMAGE
+              value: {{ .Values.app.agents }}
+            - name: ALL_APPINSIGHTS_INSTRUMENTATIONKEY
+              value: {{ .Values.app.iKey }}
+            - name: TELEMETRY_IKEY
+              value: {{ .Values.app.telemetryIkey }}
+            - name: TELEMETRY_CONN_STRING
+              value: {{ .Values.app.telemetryConnString }} 
+            - name: CLUSTER_RESOURCE_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: container-azm-ms-aks-k8scluster
+                  key: CLUSTER_RESOURCE_ID
+          ports:
+            - containerPort: 1337
+          resources:
+            requests:
+              cpu: 200m
+            limits:
+              cpu: 300m
+          volumeMounts:
+            - name: webhook-certs
+              mountPath: /mnt/webhook
+              readOnly: true
+            - name: settings-vol-config
+              mountPath: /mnt/settings
+              readOnly: true
+            - name: ikey-vol-config
+              mountPath: /mnt/ikey
+              readOnly: true
+      serviceAccount: {{ $.Values.app.name }}
+      volumes:
+        - name: webhook-certs
+          secret:
+            secretName: {{ .Values.app.name }}
+        - name: settings-vol-config
+          configMap:
+            name: container-azm-ms-agentconfig
+            optional: true
+        - name: ikey-vol-config
+          configMap:
+            name: {{ .Values.app.name }}-attach-config
+---

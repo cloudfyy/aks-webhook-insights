@@ -1,0 +1,31 @@
+{{ if and (eq .Values.app.kVerMajor "1") (eq .Values.app.kVerMinor "15") }}
+apiVersion: admissionregistration.k8s.io/v1beta1
+{{ else }}
+apiVersion: admissionregistration.k8s.io/v1
+{{ end }}
+kind: MutatingWebhookConfiguration
+metadata:
+  name: {{ .Values.app.name }}
+  {{- template "common.metadata" . }}
+webhooks:
+  - name: {{ .Values.app.name }}.{{ .Values.namespace }}.svc
+    clientConfig:
+      service:
+        name: {{ .Values.app.name }}
+        namespace: {{ .Values.namespace }}
+        path: "/"
+      caBundle: {{ .Values.app.caBundle }}
+    rules:
+      - operations: ["CREATE", "UPDATE"]
+        apiGroups: ["*"]
+        apiVersions: ["*"]
+        resources: ["pods"] 
+    #failurePolicy: Ignore
+    {{ if and (eq .Values.app.kVerMajor "1") (gt .Values.app.kVerMinor "15") }}
+    sideEffects: None
+    admissionReviewVersions: ["v1", "v1beta1"]
+    {{ end }}
+    namespaceSelector:
+      matchLabels:
+        app-monitoring: enable
+---
