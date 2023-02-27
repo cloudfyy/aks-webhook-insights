@@ -52,6 +52,8 @@ func main() {
 	aksWebhookServer.Server.Handler = mux
 
 	go func() {
+		klog.Info("port: %v, certFile: %v, keyFile: %v",
+			param.Port, param.CertFile, param.KeyFile)
 		klog.Info("Server Started")
 		if err := aksWebhookServer.Server.ListenAndServeTLS("", ""); err != nil {
 			klog.Errorf("Failed to listen and serve webhook server: %v", err)
