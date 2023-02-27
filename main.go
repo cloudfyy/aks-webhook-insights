@@ -24,6 +24,9 @@ func catchSystemStopSignal(server *akshook.WebhookServer) {
 }
 
 func main() {
+	// init klog
+	klog.InitFlags(nil)
+
 	var param akshook.AksWebhookParam
 	flag.IntVar(&param.Port, "port", 443, "Webhook server port.")
 	flag.StringVar(&param.CertFile, "tlsCertFile", "/etc/webhook/certs/tls.crt", "File containing the x509 Certificate for HTTPS.")
