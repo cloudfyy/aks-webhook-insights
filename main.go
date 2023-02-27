@@ -29,8 +29,8 @@ func main() {
 
 	var param akshook.AksWebhookParam
 	flag.IntVar(&param.Port, "port", 443, "Webhook server port.")
-	flag.StringVar(&param.CertFile, "tlsCertFile", "/etc/webhook/certs/tls.crt", "File containing the x509 Certificate for HTTPS.")
-	flag.StringVar(&param.KeyFile, "tlsKeyFile", "/etc/webhook/certs/tls.key", "File containing the x509 private key to --tlsCertFile.")
+	flag.StringVar(&param.CertFile, "tlsCertFile", "/etc/webhook/cert.pem", "File containing the x509 Certificate for HTTPS.")
+	flag.StringVar(&param.KeyFile, "tlsKeyFile", "/etc/webhook/key.pem", "File containing the x509 private key to --tlsCertFile.")
 	flag.Parse()
 
 	pair, err := tls.LoadX509KeyPair(param.CertFile, param.KeyFile)
@@ -52,8 +52,7 @@ func main() {
 	aksWebhookServer.Server.Handler = mux
 
 	go func() {
-		klog.Info("port: %v, certFile: %v, keyFile: %v",
-			param.Port, param.CertFile, param.KeyFile)
+
 		klog.Info("Server Started")
 		if err := aksWebhookServer.Server.ListenAndServeTLS("", ""); err != nil {
 			klog.Errorf("Failed to listen and serve webhook server: %v", err)
