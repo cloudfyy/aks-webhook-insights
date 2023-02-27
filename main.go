@@ -6,11 +6,12 @@ import (
 	"crypto/tls"
 	"flag"
 	"fmt"
-	"k8s.io/klog/v2"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"k8s.io/klog/v2"
 )
 
 func catchSystemStopSignal(server *akshook.WebhookServer) {
@@ -34,6 +35,8 @@ func main() {
 		klog.Errorf("Failed to load key pair: %v", err)
 	}
 
+	klog.Info("port: %v, certFile: %v, keyFile: %v",
+		param.Port, param.CertFile, param.KeyFile)
 	aksWebhookServer := &akshook.WebhookServer{
 		Server: &http.Server{
 			Addr:      fmt.Sprintf(":%v", param.Port),
