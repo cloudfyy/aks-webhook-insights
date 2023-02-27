@@ -19,7 +19,7 @@ spec:
       labels:
         app: {{ .Values.app.name }}
     spec:
-      {{ if and (eq .Values.app.kVerMajor "1") (gt .Values.app.kVerMinor "14") }}
+      {{ if and (eq .Values.app.kVerMajor "1") (lt .Values.app.kVerMinor "15") }}
       nodeSelector: "{ \"beta.kubernetes.io/os\": linux }"
       {{ else }}
       nodeSelector: "{ \"kubernetes.io/os\": linux }"
