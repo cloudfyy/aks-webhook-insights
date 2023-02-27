@@ -18,4 +18,4 @@ app:
   kVerRev: "5"
 replicaCount: 2
 
-nodeSelector: "{ \"beta.kubernetes.io/os\": linux }"
+#nodeSelector: "{ \"beta.kubernetes.io/os\": linux }"
