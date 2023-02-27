@@ -107,7 +107,6 @@ echo "found kubernetes server version ${kVer} "
 
 cat <<EOF >> ./values.yaml
 app:
-  iKey: "<target ikey>" # instrumentation key of Application Insights resource to send telemetry to
   kVerMajor: "${kVerMajor}"
   kVerMinor: "${kVerMinor}"
   kVerRev: "${kVerRev}"
