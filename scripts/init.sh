@@ -36,8 +36,18 @@ EOF
 openssl genrsa -out ${tmpdir}/server-key.pem 4096
 openssl req -new -key ${tmpdir}/server-key.pem -subj "/CN=${title}.${namespace}.svc /OU=system:nodes /O=system:nodes" -out ${tmpdir}/server.csr -config ${tmpdir}/csr.conf
 
+cat <<EOF >>${tmpdir}/server_cert_ext.cnf
+basicConstraints = CA:FALSE
+nsCertType = server
+nsComment = "OpenSSL Generated Server Certificate for ${title}"
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid,issuer:always
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+EOF
 
-echo ${serverCert} | openssl base64 -d -A -out ${tmpdir}/server-cert.pem
+openssl x509 -req -in ${tmpdir}/server.csr  -out ${tmpdir}/server-cert.pem -CAcreateserial -days 3650 -sha256 -extfile ${tmpdir}/server_cert_ext.cnf
+#echo ${serverCert} | openssl base64 -d -A -out ${tmpdir}/server-cert.pem
 
 echo "delete the secret if it exists"
 kubectl delete secret ${title} -n ${namespace} --ignore-not-found=true
