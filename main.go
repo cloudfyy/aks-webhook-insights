@@ -29,8 +29,8 @@ func main() {
 
 	var param akshook.AksWebhookParam
 	flag.IntVar(&param.Port, "port", 443, "Webhook server port.")
-	flag.StringVar(&param.CertFile, "tlsCertFile", "/etc/webhook/cert.pem", "File containing the x509 Certificate for HTTPS.")
-	flag.StringVar(&param.KeyFile, "tlsKeyFile", "/etc/webhook/key.pem", "File containing the x509 private key to --tlsCertFile.")
+	flag.StringVar(&param.CertFile, "tlsCertFile", "/mnt/webhook/cert.pem", "File containing the x509 Certificate for HTTPS.")
+	flag.StringVar(&param.KeyFile, "tlsKeyFile", "/mnt/webhook/key.pem", "File containing the x509 private key to --tlsCertFile.")
 	flag.Parse()
 
 	pair, err := tls.LoadX509KeyPair(param.CertFile, param.KeyFile)
