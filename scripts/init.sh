@@ -39,6 +39,8 @@ openssl req -new -key ${tmpdir}/server-key.pem -subj "/CN=${title}.${namespace}.
 
 echo ${serverCert} | openssl base64 -d -A -out ${tmpdir}/server-cert.pem
 
+echo "delete the secret if it exists"
+kubectl delete secret ${title} -n ${namespace} --ignore-not-found=true
 # create the secret with CA cert and server cert/key
 echo "create the secret with CA cert and server cert/key"
 kubectl create secret generic ${title} \
