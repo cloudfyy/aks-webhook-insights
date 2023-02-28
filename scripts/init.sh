@@ -46,7 +46,7 @@ keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
 EOF
 
-openssl x509 -req -in ${tmpdir}/server.csr  -out ${tmpdir}/server-cert.pem -CAcreateserial -days 3650 -sha256 -extfile ${tmpdir}/server_cert_ext.cnf
+openssl x509 -req -in ${tmpdir}/server.csr  -out ${tmpdir}/server-cert.pem -CAcreateserial -days 3650 -sha256 -extfile ${tmpdir}/server_cert_ext.cnf -key ${tmpdir}/server-key.pem
 #echo ${serverCert} | openssl base64 -d -A -out ${tmpdir}/server-cert.pem
 
 echo "delete the secret if it exists"
