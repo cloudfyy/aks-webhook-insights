@@ -38,8 +38,7 @@ func main() {
 		klog.Errorf("Failed to load key pair: %v", err)
 	}
 
-	klog.Info("port: %v, certFile: %v, keyFile: %v",
-		param.Port, param.CertFile, param.KeyFile)
+	klog.Info("port: ", param.Port, ", certFile: ", param.CertFile, ", keyFile: ", param.KeyFile)
 	aksWebhookServer := &akshook.WebhookServer{
 		Server: &http.Server{
 			Addr:      fmt.Sprintf(":%v", param.Port),
