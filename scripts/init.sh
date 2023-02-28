@@ -33,8 +33,8 @@ DNS.3 = ${title}.${namespace}.svc
 DNS.4 = ${namespace}.svc
 EOF
 
-openssl genrsa -out ${tmpdir}/server-key.pem 2048
-openssl req -new -key ${tmpdir}/server-key.pem -subj "/CN=system:node:${title}.${namespace}.svc /OU=system:nodes /O=system:nodes" -out ${tmpdir}/server.csr -config ${tmpdir}/csr.conf
+openssl genrsa -out ${tmpdir}/server-key.pem 4096
+openssl req -new -key ${tmpdir}/server-key.pem -subj "/CN=${title}.${namespace}.svc /OU=system:nodes /O=system:nodes" -out ${tmpdir}/server.csr -config ${tmpdir}/csr.conf
 
 # clean-up any previously created CSR for our service. Ignore errors if not present.
 echo "delete previous csr certs if they exist"
@@ -51,11 +51,11 @@ spec:
   groups:
   - system:authenticated
   request: $(cat ${tmpdir}/server.csr | base64 | tr -d '\n')
-  signerName: kubernetes.io/kubelet-serving
+  signerName: kubernetes.io/kube-apiserver-client
   usages:
   - digital signature
   - key encipherment
-  - server auth
+  - client auth
 EOF
 
 # verify CSR has been created
