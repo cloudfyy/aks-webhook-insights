@@ -232,11 +232,11 @@ func (s *WebhookServer) mutateJsonDiff(ar *admissionv1.AdmissionReview) *admissi
 			}
 
 		}
-	case "Service":
-		klog.Errorf("No need to Mutate Service")
-		return &admissionv1.AdmissionResponse{
-			Allowed: true,
-		}
+	/*case "Service":
+	klog.Errorf("No need to Mutate Service")
+	return &admissionv1.AdmissionResponse{
+		Allowed: true,
+	}*/
 	/*case "Pod":
 	var pod corev1.Pod
 	if err := json.Unmarshal(req.Object.Raw, &pod); err != nil {
@@ -257,6 +257,7 @@ func (s *WebhookServer) mutateJsonDiff(ar *admissionv1.AdmissionReview) *admissi
 		}
 	}
 
+	klog.Info("deployment metadata: ", deployment.ObjectMeta)
 	if !mutationRequired(deployment.ObjectMeta.GetAnnotations()) {
 		klog.Info("No need to Mutate")
 		return &admissionv1.AdmissionResponse{
