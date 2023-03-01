@@ -3,9 +3,11 @@ package akshook
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+
 	"github.com/ghodss/yaml"
 	"github.com/wI2L/jsondiff"
-	"io/ioutil"
 	admissionv1 "k8s.io/api/admission/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -13,7 +15,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/klog/v2"
-	"net/http"
 )
 
 var (
@@ -236,6 +237,17 @@ func (s *WebhookServer) mutateJsonDiff(ar *admissionv1.AdmissionReview) *admissi
 		return &admissionv1.AdmissionResponse{
 			Allowed: true,
 		}
+	/*case "Pod":
+	var pod corev1.Pod
+	if err := json.Unmarshal(req.Object.Raw, &pod); err != nil {
+		klog.Errorf("Can't not unmarshal raw object: %v", err)
+		return &admissionv1.AdmissionResponse{
+			Result: &metav1.Status{
+				Code:    http.StatusBadRequest,
+				Message: err.Error(),
+			},
+		}
+	}*/
 	default:
 		return &admissionv1.AdmissionResponse{
 			Result: &metav1.Status{
