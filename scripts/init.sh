@@ -36,22 +36,6 @@ EOF
 openssl genrsa -out ${tmpdir}/server-key.pem 4096
 openssl req -new -key ${tmpdir}/server-key.pem -out ${tmpdir}/server.csr -config ${tmpdir}/csr.conf -subj "/CN=${title}.${namespace}.svc"
 
-/*cat <<EOF >>${tmpdir}/server_cert_ext.cnf
-basicConstraints = CA:FALSE
-nsCertType = server
-nsComment = "OpenSSL Generated Server Certificate for ${title}"
-subjectKeyIdentifier = hash
-authorityKeyIdentifier = keyid,issuer:always
-keyUsage = critical, digitalSignature, keyEncipherment
-extendedKeyUsage = serverAuth
-subjectAltName=DNS:${title}.${namespace}.svc
-EOF
-*/
-
-#openssl x509 -req -in ${tmpdir}/server.csr  -out ${tmpdir}/server-cert.pem -CAcreateserial -days 3650 -sha256 -extfile ${tmpdir}/server_cert_ext.cnf -key ${tmpdir}/server-key.pem
-
-#openssl req -new -key ${tmpdir}/server-key.pem -out ${tmpdir}/server.csr -config ${tmpdir}/csr.conf
-
 # clean-up any previously created CSR for our service. Ignore errors if not present.
 echo "delete previous csr certs if they exist"
 kubectl delete csr ${csrName} 2>/dev/null || true
