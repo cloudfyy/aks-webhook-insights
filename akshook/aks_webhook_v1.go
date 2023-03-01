@@ -221,7 +221,7 @@ func (s *WebhookServer) mutateJsonDiff(ar *admissionv1.AdmissionReview) *admissi
 
 	switch req.Kind.Kind {
 	case "Deployment":
-		var deployment appsv1.Deployment
+		//var deployment appsv1.Deployment
 		if err := json.Unmarshal(req.Object.Raw, &deployment); err != nil {
 			klog.Errorf("Can't not unmarshal raw object: %v", err)
 			return &admissionv1.AdmissionResponse{
