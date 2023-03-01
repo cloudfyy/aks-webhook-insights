@@ -24,7 +24,7 @@ default_bits = 4096
 default_md = sha256
 distinguished_name = dn
 [dn]
-C =  china
+C =  CN
 ST = SH
 L = SH
 O = system:nodes
