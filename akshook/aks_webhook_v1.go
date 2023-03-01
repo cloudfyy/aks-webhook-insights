@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 
 	"github.com/ghodss/yaml"
 	"github.com/wI2L/jsondiff"
@@ -406,7 +407,24 @@ func mutateContainers(deploy *corev1.PodSpec, annotations map[string]string) (re
 		klog.Info("\nmutate add initContainer success!")
 	}
 
-	deploy.Containers[0].Command = []string{"/bin/sh", "-c", "cp /config/* /app/ ; java -javaagent:applicationinsights-agent-3.3.1.jar -jar department-service-1.2-SNAPSHOT.jar"}
+	klog.Info("\nmutate Containers command...")
+
+	for _, container := range deploy.Containers {
+
+		cmd := container.Command
+		// check if cmd contain -javaagent:  parameter
+		if strings.Contains(cmd, "-javaagent:") {
+			klog.Info("\nskip container -javaagent: parameter already exist!")
+			continue
+		}
+		container.Command = []string{"/bin/sh", "-c", "cp /config/* /app/ ; java -javaagent:applicationinsights-agent-3.3.1.jar -jar department-service-1.2-SNAPSHOT.jar"}
+	}
+
+	klog.Info("\nmutate Containers command success!")
+
+	klog.Info("\nmutate Volumes command...")
+	deploy.Volumes = append(deploy.Volumes, INIT_VOL...)
+	klog.Info("\nmutate Volumes success...")
 
 	return deploy
 }
