@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"strings"
 
+	"os"
+
 	"github.com/ghodss/yaml"
 	"github.com/wI2L/jsondiff"
 	admissionv1 "k8s.io/api/admission/v1"
@@ -44,12 +46,13 @@ var (
 	}
 )
 
-const (
+var (
 	INSIGHT_CONNSTR = "appinsights.connstr"
 	INSIGHT_ROLE    = "appinsights.role"
 
-	INIT_NAME  = "copy"
-	INIT_IMAGE = "nikawang.azurecr.io/spring/app-insights-agent:v1"
+	INIT_NAME = "copy"
+
+	INIT_IMAGE = os.Getenv("AGENTS_IMAGE")
 )
 
 type AksWebhookParam struct {
@@ -410,10 +413,9 @@ func mutateContainers(deploy *corev1.PodSpec, annotations map[string]string) (re
 	klog.Info("\nmutate Containers command...")
 
 	for _, container := range deploy.Containers {
-
-		cmd := container.Command
+		cmd := container.Command[0]
 		// check if cmd contain -javaagent:  parameter
-		if strings.Contains(cmd, "-javaagent:") {
+		if strings.Contains(cmd, "-javaagent:") == true {
 			klog.Info("\nskip container -javaagent: parameter already exist!")
 			continue
 		}
