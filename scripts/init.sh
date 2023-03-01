@@ -20,7 +20,7 @@ cat <<EOF >> ${tmpdir}/csr.conf
 [ req ]
 req_extensions = v3_req
 default_bits = 4096
-prompt = no
+
 default_md = sha256
 distinguished_name = dn
 [dn]
