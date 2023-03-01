@@ -17,27 +17,28 @@ tmpdir=$(mktemp -d)
 echo "creating certs in tmpdir ${tmpdir} "
 
 cat <<EOF >> ${tmpdir}/csr.conf
-[req]
+[ req ]
 req_extensions = v3_req
 distinguished_name = req_distinguished_name
-[req_distinguished_name]
-[ v3_req ]
-basicConstraints = CA:FALSE
-keyUsage = nonRepudiation, digitalSignature, keyEncipherment
-extendedKeyUsage = serverAuth
-subjectAltName = @alt_names
-[alt_names]
-DNS.1 = ${title}
-DNS.2 = ${title}.${namespace}
-DNS.3 = ${title}.${namespace}.svc
-DNS.4 = ${namespace}.svc
-[dn]
+[ dn ]
 C =  china
 ST = SH
 L = SH
 O = system:nodes
 OU = system:nodes
 CN = system:node:${title}.${namespace}.svc
+[ v3_ext ]
+authorityKeyIdentifier=keyid,issuer:always
+basicConstraints = CA:FALSE
+keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth
+[ req_ext ]
+subjectAltName = @alt_names
+[ alt_names ]
+DNS.1 = ${title}
+DNS.2 = ${title}.${namespace}
+DNS.3 = ${title}.${namespace}.svc
+DNS.4 = ${namespace}.svc
 EOF
 
 openssl genrsa -out ${tmpdir}/server-key.pem 4096
