@@ -32,6 +32,15 @@ var (
 			MountPath: "/config/",
 		},
 	}
+
+	INIT_VOL = []corev1.Volume{
+		corev1.Volume{
+			Name: "appinsights-config",
+			VolumeSource: corev1.VolumeSource{
+				EmptyDir: &corev1.EmptyDirVolumeSource{},
+			},
+		},
+	}
 )
 
 const (
@@ -182,11 +191,52 @@ func (s *WebhookServer) mutatePods(ar *admissionv1.AdmissionReview) *admissionv1
 		}
 	}
 
+	// add volumeMounts
+	for _, container := range pod.Spec.Containers {
+		container.VolumeMounts = append(container.VolumeMounts, INIT_VOLMOUNT...)
+		klog.Infof("Add volumeMounts: %+v", pod.Spec.Containers)
+	}
+
+	containerBytes, err := json.Marshal(&pod.Spec.Containers)
+	if err != nil {
+		klog.Errorf("Container unmarshal error: %v", err)
+		return &admissionv1.AdmissionResponse{
+			Result: &metav1.Status{
+				Code:    http.StatusBadRequest,
+				Message: err.Error(),
+			},
+		}
+	}
+
+	// add volumes
+	pod.Spec.Volumes = append(pod.Spec.Volumes, INIT_VOL...)
+	klog.Infof("Add volumes: %+v", pod.Spec.Volumes)
+	volumeBytes, err := json.Marshal(&pod.Spec.Volumes)
+	if err != nil {
+		klog.Errorf("Volume unmarshal error: %v", err)
+		return &admissionv1.AdmissionResponse{
+			Result: &metav1.Status{
+				Code:    http.StatusBadRequest,
+				Message: err.Error(),
+			},
+		}
+	}
+
 	patch := []patchOperation{
 		patchOperation{
 			Op:    "add",
 			Path:  "/spec/template/spec",
 			Value: initContainerBytes,
+		},
+		patchOperation{
+			Op:    "replace",
+			Path:  "/spec/template/spec",
+			Value: containerBytes,
+		},
+		patchOperation{
+			Op:    "replace",
+			Path:  "/spec/template/spec",
+			Value: volumeBytes,
 		},
 	}
 	patchBytes, err := json.Marshal(&patch)
