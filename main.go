@@ -67,6 +67,13 @@ func main() {
 	if err != nil {
 		klog.Fatal(err)
 	}
+
+	agentsImage, err := getenvStr("AGENTS_IMAGE")
+	if err != nil {
+		klog.Fatal(err)
+	}
+	klog.info("agentsImage: ", agentsImage)
+
 	var param akshook.AksWebhookParam
 	flag.IntVar(&param.Port, "port", port, "Webhook server port.")
 	flag.StringVar(&param.CertFile, "tlsCertFile", "/mnt/webhook/cert.pem", "File containing the x509 Certificate for HTTPS.")

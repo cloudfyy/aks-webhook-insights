@@ -31,7 +31,8 @@ spec:
           image: {{ .Values.app.image }}
           imagePullPolicy: IfNotPresent
           env: 
-           
+           - name: AGENTS_IMAGE
+              value: {{ .Values.app.agents }}
           ports:
             - containerPort: 1337
           resources:
