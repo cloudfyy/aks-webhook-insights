@@ -9,6 +9,7 @@ ENV GO111MODULE=on
 RUN cd /aks-webhook-insights && go build -o aksWebhook
 
 FROM alpine:latest as webhook
+ENV SERVERPORT=1337
 WORKDIR /app
 COPY --from=build /aks-webhook-insights/aksWebhook /app
 ENTRYPOINT ./aksWebhook
