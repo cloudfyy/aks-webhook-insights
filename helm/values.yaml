@@ -17,6 +17,6 @@ app:
   kVerMajor: "1"
   kVerMinor: "25"
   kVerRev: "5"
-replicaCount: 2
+replicaCount: 1
 
 

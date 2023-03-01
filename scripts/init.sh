@@ -34,7 +34,7 @@ DNS.4 = ${namespace}.svc
 EOF
 
 openssl genrsa -out ${tmpdir}/server-key.pem 4096
-openssl req -new -key ${tmpdir}/server-key.pem -subj "/CN=${title}.${namespace}.svc /OU=system:nodes /O=system:nodes" -out ${tmpdir}/server.csr -config ${tmpdir}/csr.conf
+openssl req -new -key ${tmpdir}/server-key.pem -subj "/CN=${title}.${namespace}.svc/OU=system:nodes/O=system:nodes" -out ${tmpdir}/server.csr -config ${tmpdir}/csr.conf
 
 cat <<EOF >>${tmpdir}/server_cert_ext.cnf
 basicConstraints = CA:FALSE
