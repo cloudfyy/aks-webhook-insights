@@ -24,12 +24,12 @@ default_bits = 4096
 default_md = sha256
 distinguished_name = dn
 [dn]
-C = CN
-ST = SH
-L = SH
-O = system:nodes
-OU = system:nodes
-CN = system:node:${title}.${namespace}.svc
+C=CN
+ST=Beijing
+L=SH
+O=system:nodes
+OU=system:nodes
+CN=system:node:${title}.${namespace}.svc
 [ v3_req ]
 basicConstraints = CA:FALSE
 keyUsage = nonRepudiation, digitalSignature, keyEncipherment
