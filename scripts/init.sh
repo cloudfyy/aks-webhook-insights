@@ -44,10 +44,10 @@ subjectKeyIdentifier = hash
 authorityKeyIdentifier = keyid,issuer:always
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
+subjectAltName=DNS:${title}.${namespace}.svc
 EOF
 
 openssl x509 -req -in ${tmpdir}/server.csr  -out ${tmpdir}/server-cert.pem -CAcreateserial -days 3650 -sha256 -extfile ${tmpdir}/server_cert_ext.cnf -key ${tmpdir}/server-key.pem
-#echo ${serverCert} | openssl base64 -d -A -out ${tmpdir}/server-cert.pem
 
 echo "delete the secret if it exists"
 kubectl delete secret ${title} -n ${namespace} --ignore-not-found=true
