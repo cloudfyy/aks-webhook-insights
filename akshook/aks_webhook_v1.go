@@ -108,7 +108,7 @@ func (s *WebhookServer) Handler(writer http.ResponseWriter, request *http.Reques
 
 	}
 
-	klog.Infof("sending response: %v", responseAdmissionReview.Response)
+	//klog.Infof("sending response: %v", responseAdmissionReview.Response)
 	// send response
 	respBytes, err := json.Marshal(responseAdmissionReview)
 	if err != nil {
@@ -257,7 +257,7 @@ func (s *WebhookServer) mutateJsonDiff(ar *admissionv1.AdmissionReview) *admissi
 		}
 	}
 
-	klog.Info("deployment metadata: ", deployment.ObjectMeta)
+	klog.Info("deployment metadata: ", deployment.ObjectMeta, "\n")
 	if !mutationRequired(deployment.ObjectMeta.GetAnnotations()) {
 		klog.Info("No need to Mutate")
 		return &admissionv1.AdmissionResponse{
@@ -290,6 +290,10 @@ func (s *WebhookServer) mutateJsonDiff(ar *admissionv1.AdmissionReview) *admissi
 			},
 		}
 	}
+
+	klog.Info("\n---------JSON diff begins---------\n")
+	klog.Info(patch)
+	klog.Info("\n---------JSON diff ends---------\n")
 
 	patchBytes, err := json.MarshalIndent(patch, "", "    ")
 	if err != nil {
