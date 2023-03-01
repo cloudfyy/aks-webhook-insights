@@ -19,8 +19,11 @@ echo "creating certs in tmpdir ${tmpdir} "
 cat <<EOF >> ${tmpdir}/csr.conf
 [ req ]
 req_extensions = v3_req
-distinguished_name = req_distinguished_name
-[req_distinguished_name]
+default_bits = 4096
+prompt = no
+default_md = sha256
+distinguished_name = dn
+[dn]
 C =  china
 ST = SH
 L = SH
@@ -31,7 +34,6 @@ CN = system:node:${title}.${namespace}.svc
 basicConstraints = CA:FALSE
 keyUsage = nonRepudiation, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
-[ req_ext ]
 subjectAltName = @alt_names
 [ alt_names ]
 DNS.1 = ${title}
