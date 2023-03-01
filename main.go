@@ -72,7 +72,7 @@ func main() {
 	if err != nil {
 		klog.Fatal(err)
 	}
-	klog.info("agentsImage: ", agentsImage)
+	klog.Info("agentsImage: ", agentsImage)
 
 	var param akshook.AksWebhookParam
 	flag.IntVar(&param.Port, "port", port, "Webhook server port.")
