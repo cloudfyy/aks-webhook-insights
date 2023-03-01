@@ -27,8 +27,7 @@ L = SH
 O = system:nodes
 OU = system:nodes
 CN = system:node:${title}.${namespace}.svc
-[ v3_ext ]
-authorityKeyIdentifier=keyid,issuer:always
+[ v3_req ]
 basicConstraints = CA:FALSE
 keyUsage = nonRepudiation, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
@@ -39,6 +38,7 @@ DNS.1 = ${title}
 DNS.2 = ${title}.${namespace}
 DNS.3 = ${title}.${namespace}.svc
 DNS.4 = ${namespace}.svc
+
 EOF
 
 openssl genrsa -out ${tmpdir}/server-key.pem 4096
