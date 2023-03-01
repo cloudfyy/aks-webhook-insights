@@ -19,18 +19,9 @@ echo "creating certs in tmpdir ${tmpdir} "
 cat <<EOF >> ${tmpdir}/csr.conf
 [req]
 req_extensions = v3_req
-default_bits = 4096
-
-default_md = sha256
-distinguished_name = dn
-[dn]
-C=CN
-ST=Beijing
-L=SH
-O=system:nodes
-OU=system:nodes
-CN=system:node:${title}.${namespace}.svc
-[v3_req]
+distinguished_name = req_distinguished_name
+[req_distinguished_name]
+[ v3_req ]
 basicConstraints = CA:FALSE
 keyUsage = nonRepudiation, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
@@ -40,11 +31,10 @@ DNS.1 = ${title}
 DNS.2 = ${title}.${namespace}
 DNS.3 = ${title}.${namespace}.svc
 DNS.4 = ${namespace}.svc
-
 EOF
 
 openssl genrsa -out ${tmpdir}/server-key.pem 4096
-openssl req -new -key ${tmpdir}/server-key.pem -out ${tmpdir}/server.csr -config ${tmpdir}/csr.conf
+openssl req -new -key ${tmpdir}/server-key.pem -out ${tmpdir}/server.csr -config ${tmpdir}/csr.conf -subj "/CN=${title}.${namespace}.svc"
 
 /*cat <<EOF >>${tmpdir}/server_cert_ext.cnf
 basicConstraints = CA:FALSE
@@ -60,7 +50,7 @@ EOF
 
 #openssl x509 -req -in ${tmpdir}/server.csr  -out ${tmpdir}/server-cert.pem -CAcreateserial -days 3650 -sha256 -extfile ${tmpdir}/server_cert_ext.cnf -key ${tmpdir}/server-key.pem
 
-openssl req -new -key ${tmpdir}/server-key.pem -out ${tmpdir}/server.csr -config ${tmpdir}/csr.conf
+#openssl req -new -key ${tmpdir}/server-key.pem -out ${tmpdir}/server.csr -config ${tmpdir}/csr.conf
 
 # clean-up any previously created CSR for our service. Ignore errors if not present.
 echo "delete previous csr certs if they exist"
