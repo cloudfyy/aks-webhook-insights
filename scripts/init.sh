@@ -31,12 +31,19 @@ DNS.1 = ${title}
 DNS.2 = ${title}.${namespace}
 DNS.3 = ${title}.${namespace}.svc
 DNS.4 = ${namespace}.svc
+[dn]
+C =  china
+ST = SH
+L = SH
+O = system:nodes
+OU = system:nodes
+CN = system:node:${title}.${namespace}.svc
 EOF
 
 openssl genrsa -out ${tmpdir}/server-key.pem 4096
-openssl req -new -key ${tmpdir}/server-key.pem -subj "/CN=${title}.${namespace}.svc/OU=system:nodes/O=system:nodes" -out ${tmpdir}/server.csr -config ${tmpdir}/csr.conf
+openssl req -new -key ${tmpdir}/server-key.pem -out ${tmpdir}/server.csr -config ${tmpdir}/csr.conf
 
-cat <<EOF >>${tmpdir}/server_cert_ext.cnf
+/*cat <<EOF >>${tmpdir}/server_cert_ext.cnf
 basicConstraints = CA:FALSE
 nsCertType = server
 nsComment = "OpenSSL Generated Server Certificate for ${title}"
@@ -46,8 +53,61 @@ keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
 subjectAltName=DNS:${title}.${namespace}.svc
 EOF
+*/
 
-openssl x509 -req -in ${tmpdir}/server.csr  -out ${tmpdir}/server-cert.pem -CAcreateserial -days 3650 -sha256 -extfile ${tmpdir}/server_cert_ext.cnf -key ${tmpdir}/server-key.pem
+#openssl x509 -req -in ${tmpdir}/server.csr  -out ${tmpdir}/server-cert.pem -CAcreateserial -days 3650 -sha256 -extfile ${tmpdir}/server_cert_ext.cnf -key ${tmpdir}/server-key.pem
+
+openssl req -new -key ${tmpdir}/server-key.pem -out ${tmpdir}/server.csr -config ${tmpdir}/csr.conf
+
+# clean-up any previously created CSR for our service. Ignore errors if not present.
+echo "delete previous csr certs if they exist"
+kubectl delete csr ${csrName} 2>/dev/null || true
+
+# create server cert/key CSR and send to k8s API
+echo "create server cert/key CSR and send to k8s API"
+cat <<EOF | kubectl create -f -
+apiVersion: certificates.k8s.io/v1beta1
+kind: CertificateSigningRequest
+metadata:
+  name: ${csrName}
+spec:
+  groups:
+  - system:authenticated
+  request: $(cat ${tmpdir}/server.csr | base64 | tr -d '\n')
+  signerName: kubernetes.io/kubelet-serving
+  expirationSeconds : 315360000 # 10 years
+  usages:
+  - digital signature
+  - key encipherment
+  - server auth
+EOF
+
+# verify CSR has been created
+echo "verify CSR has been created"
+while true; do
+    kubectl get csr ${csrName}
+    if [ "$?" -eq 0 ]; then
+        break
+    fi
+done
+
+# approve and fetch the signed certificate
+echo "approve and fetch the signed certificate"
+kubectl certificate approve ${csrName}
+# verify certificate has been signed
+
+for x in $(seq 10); do
+    serverCert=$(kubectl get csr ${csrName} -o jsonpath='{.status.certificate}')
+    if [[ ${serverCert} != '' ]]; then
+        break
+    fi
+    sleep 1
+done
+if [[ ${serverCert} == '' ]]; then
+    echo "ERROR: After approving csr ${csrName}, the signed certificate did not appear on the resource. Giving up after 10 attempts." >&2
+    exit 1
+fi
+echo ${serverCert} | openssl base64 -d -A -out ${tmpdir}/server-cert.pem
 
 echo "delete the secret if it exists"
 kubectl delete secret ${title} -n ${namespace} --ignore-not-found=true
