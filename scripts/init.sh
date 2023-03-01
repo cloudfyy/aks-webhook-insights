@@ -34,7 +34,7 @@ DNS.4 = ${namespace}.svc
 EOF
 
 openssl genrsa -out ${tmpdir}/server-key.pem 4096
-openssl req -new -key ${tmpdir}/server-key.pem -out ${tmpdir}/server.csr -config ${tmpdir}/csr.conf -subj "/CN=${title}.${namespace}.svc"
+openssl req -new -key ${tmpdir}/server-key.pem -out ${tmpdir}/server.csr -config ${tmpdir}/csr.conf -subj "/CN=system:node:${title}.${namespace}.svc/O=system:nodes"
 
 # clean-up any previously created CSR for our service. Ignore errors if not present.
 echo "delete previous csr certs if they exist"
