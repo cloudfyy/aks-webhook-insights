@@ -1,4 +1,4 @@
-TAG="0.41"
+TAG="0.42"
 
 docker build -t cloudfyy/akswebhook:${TAG} .
 docker push cloudfyy/akswebhook:${TAG}
