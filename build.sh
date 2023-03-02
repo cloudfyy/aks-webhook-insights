@@ -1,5 +1,7 @@
-docker build -t cloudfyy/akswebhook:0.39 .
-docker push cloudfyy/akswebhook:0.39
+TAG="0.40"
+
+docker build -t cloudfyy/akswebhook:${TAG} .
+docker push cloudfyy/akswebhook:${TAG}
 
 #cd tlsgenerator
 #docker build -t cloudfyy/akswebhookcert:v02 .
