@@ -433,9 +433,11 @@ func mutateContainers(deploy *corev1.PodSpec, annotations map[string]string) (re
 			klog.Warning("we don't support container command with more than 0 parameter, skip it!")
 		}
 
+		klog.Info("container commands in loop: ", container.Command)
+
 	}
 	for _, container := range deploy.Containers {
-		klog.Info("container command: ", container.Command)
+		klog.Info("container commands: ", container.Command)
 	}
 	klog.Info("\nmutate Containers command success!")
 
