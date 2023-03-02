@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"strings"
 
 	"os"
 
@@ -422,16 +421,16 @@ func mutateContainers(deploy *corev1.PodSpec, annotations map[string]string) (re
 		klog.Info("\nmutate Containers command len: ", cmdLen)
 		switch cmdLen {
 		case 0:
-			container.Command = cmds
-		case 1:
-			cmd := container.Command[0]
-			if strings.Contains(cmd, "-javaagent:") == true {
-				klog.Info("\nskip container -javaagent: parameter already exist!")
-				continue
-			}
-			container.Command = cmds
+			container.Command = append(container.Command, cmds...)
+		/*case 1:
+		cmd := container.Command[0]
+		if strings.Contains(cmd, "-javaagent:") == true {
+			klog.Warning("\nskip container -javaagent: parameter already exist!")
+			continue
+		}
+		container.Command = cmds*/
 		default:
-			klog.Warning("we don't support container command with more than 1 parameter, skip it!")
+			klog.Warning("we don't support container command with more than 0 parameter, skip it!")
 		}
 
 	}
