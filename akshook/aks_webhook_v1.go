@@ -417,7 +417,6 @@ func mutateContainers(deploy *corev1.PodSpec, annotations map[string]string) (re
 
 	for _, container := range deploy.Containers {
 		cmdLen := len(container.Command)
-
 		klog.Info("\nmutate Containers command len: ", cmdLen)
 		switch cmdLen {
 		case 0:
@@ -432,7 +431,6 @@ func mutateContainers(deploy *corev1.PodSpec, annotations map[string]string) (re
 		default:
 			klog.Warning("we don't support container command with more than 0 parameter, skip it!")
 		}
-
 		klog.Info("container commands in loop: ", container.Command)
 
 	}
