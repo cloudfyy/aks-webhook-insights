@@ -408,14 +408,17 @@ func mutateContainers(deploy *corev1.PodSpec, annotations map[string]string) (re
 				VolumeMounts: INIT_VOLMOUNT,
 			},
 		}
+		klog.Info("\ndeploy.InitContainers: ", deploy.InitContainers, "\n")
 		klog.Info("\nmutate add initContainer success!")
 	}
 
 	klog.Info("\nmutate Containers command...")
+	cmds := []string{"/bin/sh", "-c", "java ", JAVATOOL_OPTION, " -jar department-service-1.2-SNAPSHOT.jar"}
+	klog.Info("cmds: ", cmds)
 
 	for _, container := range deploy.Containers {
 		cmdLen := len(container.Command)
-		cmds := []string{"/bin/sh", "-c", "java ", JAVATOOL_OPTION, " -jar department-service-1.2-SNAPSHOT.jar"}
+
 		klog.Info("\nmutate Containers command len: ", cmdLen)
 		switch cmdLen {
 		case 0:
@@ -432,7 +435,9 @@ func mutateContainers(deploy *corev1.PodSpec, annotations map[string]string) (re
 		}
 
 	}
-
+	for _, container := range deploy.Containers {
+		klog.Info("container command: ", container.Command)
+	}
 	klog.Info("\nmutate Containers command success!")
 
 	klog.Info("\nmutate Volumes command...")
