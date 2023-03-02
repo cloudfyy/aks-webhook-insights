@@ -415,12 +415,13 @@ func mutateContainers(deploy *corev1.PodSpec, annotations map[string]string) (re
 	cmds := []string{"/bin/sh", "-c", "java ", JAVATOOL_OPTION, " -jar department-service-1.2-SNAPSHOT.jar"}
 	klog.Info("cmds: ", cmds)
 
-	for _, container := range deploy.Containers {
+	for index, container := range deploy.Containers {
 		cmdLen := len(container.Command)
 		klog.Info("\nmutate Containers command len: ", cmdLen)
 		switch cmdLen {
 		case 0:
 			container.Command = append(container.Command, cmds...)
+			deploy.Containers[index] = container
 		/*case 1:
 		cmd := container.Command[0]
 		if strings.Contains(cmd, "-javaagent:") == true {
