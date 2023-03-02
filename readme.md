@@ -14,9 +14,12 @@
 待监控的名字空间需要有app-monitoring: enable标签
 待监控的deploymnet需要有如下注解：
 
-- ![#c5f015]appinsights.connstr: InstrumentationKey=******;IngestionEndpoint=https://japaneast-1.in.applicationinsights.azure.com/;LiveEndpoint=https://japaneast.livediagnostics.monitor.azure.com/ 
-    appinsights.role: department-service `#c5f015`
+```diff
 
++ appinsights.connstr: InstrumentationKey=******;IngestionEndpoint=https://japaneast-1.in.applicationinsights.azure.com/;LiveEndpoint=https://japaneast.livediagnostics.monitor.azure.com/ 
++    appinsights.role: department-service `#c5f015`
+```
+一个较完整的deployment Yaml如下：
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
