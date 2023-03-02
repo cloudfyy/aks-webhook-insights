@@ -17,7 +17,7 @@
 ```diff
 
 + appinsights.connstr: InstrumentationKey=******;IngestionEndpoint=https://japaneast-1.in.applicationinsights.azure.com/;LiveEndpoint=https://japaneast.livediagnostics.monitor.azure.com/ 
-+    appinsights.role: department-service `#c5f015`
++    appinsights.role: department-service 
 ```
 一个较完整的deployment Yaml如下：
 ```yaml
