@@ -52,7 +52,8 @@ var (
 
 	INIT_NAME = "copy"
 
-	INIT_IMAGE = os.Getenv("AGENTS_IMAGE")
+	INIT_IMAGE      = os.Getenv("AGENTS_IMAGE")
+	JAVATOOL_OPTION = "-javaagent:applicationinsights-agent-3.3.1.jar"
 )
 
 type AksWebhookParam struct {
@@ -413,13 +414,23 @@ func mutateContainers(deploy *corev1.PodSpec, annotations map[string]string) (re
 	klog.Info("\nmutate Containers command...")
 
 	for _, container := range deploy.Containers {
-		cmd := container.Command[0]
-		// check if cmd contain -javaagent:  parameter
-		if strings.Contains(cmd, "-javaagent:") == true {
-			klog.Info("\nskip container -javaagent: parameter already exist!")
-			continue
+		cmdLen := len(container.Command)
+		cmds := []string{"/bin/sh", "-c", "java ", JAVATOOL_OPTION, " -jar department-service-1.2-SNAPSHOT.jar"}
+		klog.Info("\nmutate Containers command len: ", cmdLen)
+		switch cmdLen {
+		case 0:
+			container.Command = cmds
+		case 1:
+			cmd := container.Command[0]
+			if strings.Contains(cmd, "-javaagent:") == true {
+				klog.Info("\nskip container -javaagent: parameter already exist!")
+				continue
+			}
+			container.Command = cmds
+		default:
+			klog.Warning("we don't support container command with more than 1 parameter, skip it!")
 		}
-		container.Command = []string{"/bin/sh", "-c", "cp /config/* /app/ ; java -javaagent:applicationinsights-agent-3.3.1.jar -jar department-service-1.2-SNAPSHOT.jar"}
+
 	}
 
 	klog.Info("\nmutate Containers command success!")
