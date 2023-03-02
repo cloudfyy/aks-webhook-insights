@@ -105,3 +105,9 @@ webhook的名字默认为app-monitoring-webhook-*。
 # 如何构建镜像
 
 如果需要自己构建镜像，请运行根目录中的build.sh。
+
+# 致谢
+本项目参考了lincvic(https://github.com/lincvic)和Microsoft(https://github.com/microsoft)的代码：
+- https://github.com/lincvic/aks-webhook-insights
+- https://github.com/microsoft/Application-Insights-K8s-Codeless-Attach
+
