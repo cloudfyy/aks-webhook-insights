@@ -14,14 +14,17 @@
 待监控的名字空间需要有app-monitoring: enable标签
 待监控的deploymnet需要有如下注解：
 
+- ![#c5f015]appinsights.connstr: InstrumentationKey=******;IngestionEndpoint=https://japaneast-1.in.applicationinsights.azure.com/;LiveEndpoint=https://japaneast.livediagnostics.monitor.azure.com/ 
+    appinsights.role: department-service `#c5f015`
+
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: test-deploy1
   annotations:
-    - ![#c5f015]appinsights.connstr: InstrumentationKey=******;IngestionEndpoint=https://japaneast-1.in.applicationinsights.azure.com/;LiveEndpoint=https://japaneast.livediagnostics.monitor.azure.com/ `#c5f015`
-    appinsights.role: department-service `#c5f015`
+    - appinsights.connstr: InstrumentationKey=******;IngestionEndpoint=https://japaneast-1.in.applicationinsights.azure.com/;LiveEndpoint=https://japaneast.livediagnostics.monitor.azure.com/ 
+    appinsights.role: department-service 
 ```
 # 参数说明
 
@@ -96,6 +99,6 @@ webhook的名字默认为app-monitoring-webhook-*。
  kubectl logs -n kube-system app-monitoring-webhook-858df5c4b-7sllf
 ```
 
-#构建
+# 如何构建镜像
 
 如果需要自己构建镜像，请运行根目录中的build.sh。
