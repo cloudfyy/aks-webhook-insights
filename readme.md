@@ -31,7 +31,7 @@ helm有如下参数：
 |namespace|本webhook安装的名字空间|
 |name|webhook名字|
 |environment|环境名|
-|owner|负责作名字|
+|owner|负责人名字|
 |image|webhook镜像地址|
 |agents|java application insights镜像地址|
 |caBundle|webhook服务器TLS证书公钥。API服务器使用此公钥访问webhook服务器。此字段由init.sh生成|
