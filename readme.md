@@ -6,6 +6,7 @@
 1. Kubernetes 1.25.5+
 2. Helm 3.11.1+
 3. Azure cli 2.45+
+4. Docker 23.0.1+ (只有构建镜像才需要)
 
 # 工作原理
 * scripts/init.sh: 此脚本负责生成webhook应用所需的数字证书。数字证书需要由k8s进行签名然后才能使用。
