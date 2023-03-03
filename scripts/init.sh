@@ -3,6 +3,12 @@
 set -e
 title="app-monitoring-webhook"
 namespace="kube-system"
+environment = "test"
+owner = "Microsoft"
+testing = "false"
+replicaCount = "1"
+image="cloudfyy/akswebhook:1.00"
+agents="nikawang.azurecr.io/spring/app-insights-agent:v1"
 
 [ -z ${title} ] && title=app-monitoring-webhook
 [ -z ${namespace} ] && namespace=aks-webhook-ns
@@ -109,9 +115,18 @@ kVerRev="${kVerRev#*\.}"
 echo "found kubernetes server version ${kVer} "
 
 cat <<EOF >> ./values.yaml
+namespace: ${namespace}
 app:
+  name: "${title}"
+  environment: "${environment}"
+  owner: "${owner}"
+  testing: ${testing}
+  image: "${image}"
+  agents: "${agents}"
+  kVerMajor: "${kVerMajor}"
   kVerMajor: "${kVerMajor}"
   kVerMinor: "${kVerMinor}"
   kVerRev: "${kVerRev}"
   caBundle: "${CA_BUNDLE}"
+replicaCount: ${replicaCount}
 EOF
