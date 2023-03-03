@@ -130,7 +130,6 @@ app:
   image: "${image}"
   agents: "${agents}"
   kVerMajor: "${kVerMajor}"
-  kVerMajor: "${kVerMajor}"
   kVerMinor: "${kVerMinor}"
   kVerRev: "${kVerRev}"
   caBundle: "${CA_BUNDLE}"
