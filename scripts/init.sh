@@ -3,15 +3,21 @@
 set -e
 title="app-monitoring-webhook"
 namespace="kube-system"
-environment = "test"
-owner = "Microsoft"
-testing = "false"
-replicaCount = "1"
+environment="test"
+owner="Microsoft"
+testing="false"
+replicaCount="1"
 image="cloudfyy/akswebhook:1.00"
 agents="nikawang.azurecr.io/spring/app-insights-agent:v1"
 
 [ -z ${title} ] && title=app-monitoring-webhook
 [ -z ${namespace} ] && namespace=aks-webhook-ns
+[ -z ${environment} ] && environment=test
+[ -z ${owner} ] && owner=Microsoft
+[ -z ${testing} ] && testing=false
+[ -z ${replicaCount} ] && replicaCount=1
+[ -z ${image} ] && image=cloudfyy/akswebhook:1.00
+[ -z ${agents} ] && agents=nikawang.azurecr.io/spring/app-insights-agent:v1
 
 if [ ! -x "$(command -v openssl)" ]; then
     echo "openssl not found"
