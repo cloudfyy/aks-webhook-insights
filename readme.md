@@ -43,11 +43,11 @@ helm有如下参数：
 |owner|负责人名字|
 |image|webhook镜像地址|
 |agents|java application insights镜像地址|
-|caBundle|webhook服务器TLS证书公钥。API服务器使用此公钥访问webhook服务器。此字段由init.sh生成|
+|caBundle|webhook服务器TLS证书公钥。API服务器使用此公钥访问webhook服务器|
 |testing|是否为测试环境|
-|kVerMajor|Kubernetes主版本号。此字段由init.sh生成|
-|kVerMinor|Kubernetes次版本号。此字段由init.sh生成|
-|kVerRev|Kubernetes修订版本号。此字段由init.sh生成|
+|kVerMajor|Kubernetes主版本号|
+|kVerMinor|Kubernetes次版本号|
+|kVerRev|Kubernetes修订版本号|
 |replicaCount|webhook的pod数目|
 
 # 部署方法
