@@ -1,4 +1,4 @@
 .idea
-./scripts/values.yaml
+scripts/values.yaml
 debug-log.txt
-./helm_package
+helm_package/*
