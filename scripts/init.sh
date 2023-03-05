@@ -7,7 +7,7 @@ environment="test"
 owner="Microsoft"
 testing="false"
 replicaCount="1"
-image="cloudfyy/akswebhook:1.00"
+image="cloudfyy/akswebhook:1.0.0"
 agents="cloudfyy/application-insights-java-agent:1.0.0"
 
 [ -z ${title} ] && title=app-monitoring-webhook
@@ -16,7 +16,7 @@ agents="cloudfyy/application-insights-java-agent:1.0.0"
 [ -z ${owner} ] && owner=Microsoft
 [ -z ${testing} ] && testing=false
 [ -z ${replicaCount} ] && replicaCount=1
-[ -z ${image} ] && image=cloudfyy/akswebhook:1.00
+[ -z ${image} ] && image=cloudfyy/akswebhook:1.0.0
 [ -z ${agents} ] && agents=cloudfyy/application-insights-java-agent:1.0.0
 
 if [ ! -x "$(command -v openssl)" ]; then
