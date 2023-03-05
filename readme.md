@@ -55,7 +55,23 @@ helm有如下参数：
 # 部署方法
 
 1. 克隆本仓库;
-2. 转到scripts目录，请打开运行init.sh，修改前面部分的参数，参数如何设置请参考参数说明部分。然后请运行init.sh；
+2. 首先请检查待监控的命名空间是否有标签app-monitoring=enable。这里以default为例：
+```
+kubectl label namespace default --list=true
+
+```
+如果没有请加上此标签：
+
+```
+ kubectl label namespace default app-monitoring=true
+```
+如果要删除标签，请使用如下命令：
+
+```
+kubectl label namespace default app-monitoring-
+```
+
+转到scripts目录，请打开运行init.sh，修改前面部分的参数，参数如何设置请参考参数说明部分。然后请运行init.sh；
 init.sh会生成一个values.yaml文件，请打开查看其内容。
 如下为一个例子：
 ```yaml
@@ -116,6 +132,12 @@ webhook的名字默认为app-monitoring-webhook-*。
 
 ```
  kubectl logs -n kube-system app-monitoring-webhook-858df5c4b-7sllf
+```
+# 卸载
+
+```
+ helm uninstall aks-webhook
+ kubectl delete -f ./deployment/test-deployment.yaml
 ```
 
 # 如何构建镜像
