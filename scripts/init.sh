@@ -14,17 +14,10 @@ agents="cloudfyy/application-insights-java-agent:${imgver}"
 javaagentoptions="-javaagent:applicationinsights-agent-${javaagentversion}.jar"
 javastartpackage="-jar department-service-1.2-SNAPSHOT.jar"
 
-[ -z ${title} ] && title=app-monitoring-webhook
-[ -z ${namespace} ] && namespace=aks-webhook-ns
-[ -z ${environment} ] && environment=test
-[ -z ${owner} ] && owner=Microsoft
-[ -z ${testing} ] && testing=false
-[ -z ${replicaCount} ] && replicaCount=1
-[ -z ${image} ] && image=cloudfyy/akswebhook:1.0.0
-[ -z ${agents} ] && agents=cloudfyy/application-insights-java-agent:1.0.0
-[ -z ${javaagentoptions} ] && javaagentoptions="-javaagent:applicationinsights-agent-3.4.10.jar"
-[ -z ${javastartpackage} ] && javastartpackage="-jar department-service-1.2-SNAPSHOT.jar"
-
+if [ ! -x "$(command -v kubectl)" ]; then
+    echo "kubectl not found"
+    exit 1
+fi
 if [ ! -x "$(command -v openssl)" ]; then
     echo "openssl not found"
     exit 1
