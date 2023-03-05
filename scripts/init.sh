@@ -2,14 +2,15 @@
 
 set -e
 javaagentversion=3.4.10
+imgver = 1.0.1
 title="app-monitoring-webhook"
 namespace="kube-system"
 environment="test"
 owner="Microsoft"
 testing="false"
 replicaCount="1"
-image="cloudfyy/akswebhook:1.0.0"
-agents="cloudfyy/application-insights-java-agent:1.0.0"
+image="cloudfyy/akswebhook:${imgver}"
+agents="cloudfyy/application-insights-java-agent:${imgver}"
 javaagentoptions="-javaagent:applicationinsights-agent-${javaagentversion}.jar"
 javastartpackage="-jar department-service-1.2-SNAPSHOT.jar"
 
