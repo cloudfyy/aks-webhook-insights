@@ -1,0 +1,59 @@
+{
+      "connectionString": "CONNECTION_STRING",
+      "role": {
+          "name": "ROLE_NAME"
+        },
+      "preview": {
+        "captureHttpServerHeaders": {
+          "requestHeaders": [
+            "content-type"
+          ],
+          "responseHeaders": [
+            "content-type"
+          ]
+        },
+        "captureHttpClientHeaders": {
+          "requestHeaders": [
+            "content-type"
+          ],
+          "responseHeaders": [
+            "content-type"
+          ]
+        },
+        "captureLoggingLevelAsCustomDimension": true
+      },
+      "instrumentation": {
+        "azureSdk": {
+          "enabled": true
+        },
+        "cassandra": {
+          "enabled": false
+        },
+        "jdbc": {
+          "enabled": false
+        },
+        "jms": {
+          "enabled": false
+        },
+        "kafka": {
+          "enabled": false
+        },
+        "micrometer": {
+          "enabled": false
+        },
+        "mongo": {
+          "enabled": false
+        },
+        "rabbitmq": {
+          "enabled": false
+        },
+        "redis": {
+          "enabled": true
+        },
+        "springScheduling": {
+          "enabled": true
+        },
+        "springIntegration": {
+          "enabled": true
+        }
+      } } 
