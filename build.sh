@@ -1,4 +1,4 @@
-TAG="1.0.2"
+TAG="1.0.3"
 
 cd ./agent
 docker build -t cloudfyy/application-insights-java-agent:${TAG} .
