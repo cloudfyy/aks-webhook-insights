@@ -8,7 +8,7 @@ owner="Microsoft"
 testing="false"
 replicaCount="1"
 image="cloudfyy/akswebhook:1.00"
-agents="nikawang.azurecr.io/spring/app-insights-agent:v1"
+agents="cloudfyy/application-insights-java-agent:1.0.0"
 
 [ -z ${title} ] && title=app-monitoring-webhook
 [ -z ${namespace} ] && namespace=aks-webhook-ns
@@ -17,7 +17,7 @@ agents="nikawang.azurecr.io/spring/app-insights-agent:v1"
 [ -z ${testing} ] && testing=false
 [ -z ${replicaCount} ] && replicaCount=1
 [ -z ${image} ] && image=cloudfyy/akswebhook:1.00
-[ -z ${agents} ] && agents=nikawang.azurecr.io/spring/app-insights-agent:v1
+[ -z ${agents} ] && agents=cloudfyy/application-insights-java-agent:1.0.0
 
 if [ ! -x "$(command -v openssl)" ]; then
     echo "openssl not found"
