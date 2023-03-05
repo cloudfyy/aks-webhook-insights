@@ -51,8 +51,11 @@ var (
 
 	INIT_NAME = "copy"
 
-	INIT_IMAGE      = os.Getenv("AGENTS_IMAGE")
-	JAVATOOL_OPTION = "-javaagent:applicationinsights-agent-3.3.1.jar"
+	INIT_IMAGE         = os.Getenv("AGENTS_IMAGE")
+	JAVATOOL_OPTION    = os.Getenv("JAVAAGENT_OPTION")
+	JAVA_START_PACKAGE = os.Getenv("JAVA_START_PACKAGE")
+	// JAVATOOL_OPTION    = "-javaagent:applicationinsights-agent-3.3.1.jar"
+	// JAVA_START_PACKAGE = " -jar department-service-1.2-SNAPSHOT.jar"
 )
 
 type AksWebhookParam struct {
@@ -412,7 +415,7 @@ func mutateContainers(deploy *corev1.PodSpec, annotations map[string]string) (re
 	}
 
 	klog.Info("\nmutate Containers command...")
-	cmds := []string{"/bin/sh", "-c", "java ", JAVATOOL_OPTION, " -jar department-service-1.2-SNAPSHOT.jar"}
+	cmds := []string{"/bin/sh", "-c", "java ", JAVATOOL_OPTION, JAVA_START_PACKAGE}
 	klog.Info("cmds: ", cmds)
 
 	for index, container := range deploy.Containers {
