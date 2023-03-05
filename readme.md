@@ -63,7 +63,7 @@ kubectl label namespace default --list=true
 如果没有请加上此标签：
 
 ```
- kubectl label namespace default app-monitoring=true
+ kubectl label namespace default app-monitoring=enable
 ```
 如果要删除标签，请使用如下命令：
 
