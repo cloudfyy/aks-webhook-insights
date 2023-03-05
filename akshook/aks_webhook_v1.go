@@ -434,6 +434,7 @@ func mutateContainers(deploy *corev1.PodSpec, annotations map[string]string) (re
 	}
 	for _, container := range deploy.Containers {
 		klog.Info("container commands: ", container.Command)
+		klog.Info("container volume mounts: ", container.VolumeMounts)
 	}
 	klog.Info("\nmutate Containers command success!")
 
