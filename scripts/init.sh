@@ -107,6 +107,13 @@ kubectl create secret generic ${title} \
         --dry-run=client -o yaml |
     kubectl -n ${namespace} apply -f -
 
+# https://k8s-docs.netlify.app/en/docs/tasks/access-kubernetes-api/configure-aggregation-layer/
+# The Kubernetes apiserver connects to the extension apiserver over TLS, authenticating itself using a client certificate.
+#When started with these options, the Kubernetes apiserver will:
+
+ #   Use them to authenticate to the extension apiserver.
+ #   Create a configmap in the kube-system namespace called extension-apiserver-authentication, in which it will place the CA certificate and the allowed CNs. These in turn can be retrieved by extension apiservers to validate requests.
+
 export CA_BUNDLE=$(kubectl get configmap -n kube-system extension-apiserver-authentication -o=jsonpath='{.data.client-ca-file}' | base64 | tr -d '\n')
 #cat ./values._aml | envsubst > ./values.yaml
 
