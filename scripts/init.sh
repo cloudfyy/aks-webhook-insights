@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -e
+javaagentversion=3.4.10
 title="app-monitoring-webhook"
 namespace="kube-system"
 environment="test"
@@ -9,6 +10,8 @@ testing="false"
 replicaCount="1"
 image="cloudfyy/akswebhook:1.0.0"
 agents="cloudfyy/application-insights-java-agent:1.0.0"
+javaagentoptions="-javaagent:applicationinsights-agent-${javaagentversion}.jar"
+javastartpackage="-jar department-service-1.2-SNAPSHOT.jar"
 
 [ -z ${title} ] && title=app-monitoring-webhook
 [ -z ${namespace} ] && namespace=aks-webhook-ns
@@ -18,6 +21,8 @@ agents="cloudfyy/application-insights-java-agent:1.0.0"
 [ -z ${replicaCount} ] && replicaCount=1
 [ -z ${image} ] && image=cloudfyy/akswebhook:1.0.0
 [ -z ${agents} ] && agents=cloudfyy/application-insights-java-agent:1.0.0
+[ -z ${javaagentoptions} ] && javaagentoptions="-javaagent:applicationinsights-agent-3.4.10.jar"
+[ -z ${javastartpackage} ] && javastartpackage="-jar department-service-1.2-SNAPSHOT.jar"
 
 if [ ! -x "$(command -v openssl)" ]; then
     echo "openssl not found"
