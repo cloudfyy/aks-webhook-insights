@@ -138,5 +138,7 @@ app:
   kVerMinor: "${kVerMinor}"
   kVerRev: "${kVerRev}"
   caBundle: "${CA_BUNDLE}"
+  javaagentoptions: "${javaagentoptions}"
+  javastartpackage: "${javastartpackage}"
 replicaCount: ${replicaCount}
 EOF

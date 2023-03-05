@@ -32,11 +32,11 @@ spec:
           imagePullPolicy: IfNotPresent
           env: 
            - name: AGENTS_IMAGE
-             value: {{ .Values.app.agents }}
+             value: {{ .Values.app.agents}}
            - name: JAVAAGENT_OPTION
-             value: {{ .Values.app.agents }}
+             value: {{ .Values.app.javaagentoptions}}
            - name: JAVA_START_PACKAGE
-             value: {{ .Values.app.agents }}
+             value: {{ .Values.app.javastartpackage}}
           ports:
             - containerPort: 1337
           resources:
