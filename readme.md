@@ -14,7 +14,7 @@
 * scripts/init.sh: 此脚本负责生成webhook应用所需的数字证书。数字证书需要由k8s进行签名然后才能使用。
 此脚本还生成部署时所用的helm参数。我们部署时需要把生成的参数合并进values.yaml后再进行部署。
 * webhook针对deployment的create事件进行监控。
-- (重要)待监控的名字空间需要有 app-monitoring: enable 标签;
+- (重要)待监控的名字空间需要有 **app-monitoring: enable** 标签;
 - 待监控的deploymnet需要有如下注解：
 
 ```diff
