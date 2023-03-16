@@ -1,5 +1,5 @@
 # initialize build and set base image
-FROM maven:3.6.3-adoptopenjdk-11 as base
+FROM maven:3.6.3-adoptopenjdk-17 as base
 
 # set working directory
 WORKDIR /opt/demo
