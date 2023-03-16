@@ -20,9 +20,12 @@
 ```diff
 
 appinsights.connstr: InstrumentationKey=******;IngestionEndpoint=https://japaneast-1.in.applicationinsights.azure.com/;LiveEndpoint=https://japaneast.livediagnostics.monitor.azure.com/ 
-+    appinsights.role: department-service 
+    appinsights.role: (app insights的cloud角色名字)
 ```
-一个较完整的deployment Yaml如下：
+
+注：Application Insight的cloud role name的含义请参考下方的参考文档。
+
+一个较完整的deployment Yaml例子如下：
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -32,6 +35,7 @@ metadata:
     - appinsights.connstr: InstrumentationKey=******;IngestionEndpoint=https://japaneast-1.in.applicationinsights.azure.com/;LiveEndpoint=https://japaneast.livediagnostics.monitor.azure.com/ 
     appinsights.role: department-service 
 ```
+
 # 参数说明
 
 helm有如下参数：
@@ -148,4 +152,10 @@ webhook的名字默认为app-monitoring-webhook-*。
 本项目参考了lincvic(https://github.com/lincvic)和Microsoft(https://github.com/microsoft)的代码：
 - https://github.com/lincvic/aks-webhook-insights
 - https://github.com/microsoft/Application-Insights-K8s-Codeless-Attach
+
+# 参考资料
+
+- Dynamic Admission Control(https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/)
+- Configure the Aggregation Layer(https://k8s-docs.netlify.app/en/docs/tasks/access-kubernetes-api/configure-aggregation-layer/#:~:text=Create%20a%20configmap%20in%20the%20kube-system%20namespace%20called,be%20retrieved%20by%20extension%20apiservers%20to%20validate%20requests.)
+- Cloud role name(https://learn.microsoft.com/en-us/azure/azure-monitor/app/java-standalone-config#cloud-role-name)
 
