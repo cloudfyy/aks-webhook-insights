@@ -127,7 +127,7 @@ kVerRev="${kVerRev#*\.}"
 echo "found kubernetes server version ${kVer} "
 
 #remove old values.yaml
-rm ./values.yaml
+rm -f ./values.yaml
 
 cat <<EOF >> ./values.yaml
 namespace: ${namespace}
