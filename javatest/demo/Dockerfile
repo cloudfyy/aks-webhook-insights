@@ -1,5 +1,5 @@
 # initialize build and set base image
-FROM 3.9.0-eclipse-temurin-17 as base
+FROM maven:3.9.0-eclipse-temurin-17 as base
 
 # set working directory
 WORKDIR /opt/demo
