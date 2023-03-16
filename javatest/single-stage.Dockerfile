@@ -9,3 +9,4 @@ COPY . .
 
 # compile the source code and package it in a jar file
 RUN mvn clean package -Dmaven.test.skip=true
+CMD ["java","-jar /opt/demo/demo.jar"]
