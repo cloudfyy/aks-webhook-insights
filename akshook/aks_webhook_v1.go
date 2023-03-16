@@ -415,7 +415,8 @@ func mutateContainers(deploy *corev1.PodSpec, annotations map[string]string) (re
 	}
 
 	klog.Info("\nmutate Containers command...")
-	cmds := []string{"/bin/sh", "-c", "java ", JAVATOOL_OPTION, JAVA_START_PACKAGE}
+	javaCmd := "java " + JAVATOOL_OPTION + "" + JAVA_START_PACKAGE
+	cmds := []string{"/bin/sh", "-c", javaCmd}
 	klog.Info("cmds: ", cmds)
 
 	for index, container := range deploy.Containers {
