@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+
+  ukg-portal-service:
+    build: first.Dockerfile
+    image: first
+    ports:
+      - 8080:8080
+    command: java -Dspring.profiles.active=dev -jar /app/target/demo-0.0.1-SNAPSHOT.jar
+    
