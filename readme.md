@@ -114,7 +114,7 @@ kubectl apply -f ./deployment/test-deployment.yaml
 7. 此时webhook应该已经运行，我们可以运行如下命令查看其结果：
 
 ```
-kubectl get deploy test-deploy1 -o yaml
+kubectl get deploy java-test-deploy -o yaml
 ```
 8. 如果要查看webhook调试信息，请使用如下命令：
 

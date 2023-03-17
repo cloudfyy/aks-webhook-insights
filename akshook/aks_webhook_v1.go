@@ -422,15 +422,12 @@ func mutateContainers(deploy *corev1.PodSpec, annotations map[string]string) (re
 	for index, container := range deploy.Containers {
 		cmdLen := len(container.Command)
 		klog.Info("\nmutate Containers command len: ", cmdLen)
-		switch cmdLen {
-		case 0:
-			container.Command = append(container.Command, cmds...)
+		if cmdLen > 0 {
 
-		default:
 			klog.Warning("old command in container: ", container.Name, " is ", container.Command)
-			container.Command = cmds
 		}
 
+		container.Command = cmds
 		container.VolumeMounts = append(container.VolumeMounts, INIT_VOLMOUNT...)
 		deploy.Containers[index] = container
 
