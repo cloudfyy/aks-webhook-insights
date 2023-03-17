@@ -153,6 +153,10 @@ webhook的名字默认为app-monitoring-webhook-*。
 - https://github.com/lincvic/aks-webhook-insights
 - https://github.com/microsoft/Application-Insights-K8s-Codeless-Attach
 
+Java测试程序基于如下代码：
+https://github.com/mag1309/spring-boot-hello-world
+
+
 # 参考资料
 
 - Dynamic Admission Control(https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/)
