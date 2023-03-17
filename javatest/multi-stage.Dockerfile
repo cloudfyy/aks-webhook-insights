@@ -20,4 +20,4 @@ FROM adoptopenjdk/openjdk11:jre-11.0.9_11-alpine
 WORKDIR /opt/demo
 # copy over the built artifact from the maven image
 COPY --from=stage1 /opt/demo/target/demo.jar /opt/demo
-CMD ["java","-jar /opt/demo/demo.jar"]
+ENTRYPOINT  ["java", "-jar", "/opt/demo/demo.jar"]
