@@ -75,7 +75,9 @@ kubectl label namespace default --list=true
 kubectl label namespace default app-monitoring-
 ```
 
-转到scripts目录，请打开运行init.sh，修改前面部分的参数，参数如何设置请参考参数说明部分。然后请运行init.sh；
+转到scripts目录，请打开运行init.sh，修改前面部分的参数，参数如何设置请参考参数说明部分。
+然后请运行init.sh；
+
 init.sh会生成一个values.yaml文件，请打开查看其内容。
 如下为一个例子：
 ```yaml
@@ -98,9 +100,9 @@ replicaCount: 1
 ```
 我们可以直接使用生成的values.yaml进行部署。
 
-3. 我们可以直接使用上一步生成的values.yaml文件；
+3. 对上一步生成的values.yaml文件修改并保存；
 4. 打开deployment/test-deployment.yaml，检查其annotation设置并根据情况进行调整；
-5. 运行如下命令安装webhook：
+5. 转到根目录，运行如下命令安装webhook：
 
 ```
  helm install aks-webhook -f ./scripts/values.yaml  ./helm
@@ -121,7 +123,7 @@ kubectl get deploy java-test-deploy -o yaml
 
 ![测试成功](/img/success.png?raw=true "测试成功")
 
-8. 如果要查看webhook调试信息，请使用如下命令：
+9. 如果要查看webhook调试信息，请使用如下命令：
 
 得到pod名字
 ```
