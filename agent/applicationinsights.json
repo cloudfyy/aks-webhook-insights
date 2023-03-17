@@ -21,9 +21,11 @@
             ]
         },
         "captureLoggingLevelAsCustomDimension": true ,
-        "springIntegration": {
-            "enabled": true
-        }       
+        "instrumentation": {
+            "springIntegration": {
+                "enabled": true
+            }       
+        }      
     },
     
     "instrumentation": {
