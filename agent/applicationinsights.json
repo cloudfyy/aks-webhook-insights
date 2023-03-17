@@ -21,9 +21,7 @@
             ]
         },
         "captureLoggingLevelAsCustomDimension": true,
-         "springIntegration": {
-            "enabled": true
-        }
+        
     },
     
     "instrumentation": {
@@ -53,7 +51,9 @@
         },
         "redis": {
             "enabled": true
+        },
+        "springIntegration": {
+            "enabled": true
         }
-        
     }
 }
