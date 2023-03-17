@@ -2,7 +2,7 @@
 
 set -e
 javaagentversion=3.4.10
-imgver=1.0.9
+imgver=1.0.10
 title="app-monitoring-webhook"
 namespace="kube-system"
 environment="test"
