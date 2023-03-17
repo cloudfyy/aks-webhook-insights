@@ -9,4 +9,4 @@ COPY . .
 
 # compile the source code and package it in a jar file
 RUN mvn clean package -Dmaven.test.skip=true
-ENTRYPOINT  ["java", "-jar ", "/opt/demo/demo.jar"]
+ENTRYPOINT  ["/bin/sh", "-c", "java", "-jar /opt/demo/demo.jar"]

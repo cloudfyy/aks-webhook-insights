@@ -425,12 +425,14 @@ func mutateContainers(deploy *corev1.PodSpec, annotations map[string]string) (re
 		switch cmdLen {
 		case 0:
 			container.Command = append(container.Command, cmds...)
-			container.VolumeMounts = append(container.VolumeMounts, INIT_VOLMOUNT...)
-			deploy.Containers[index] = container
 
 		default:
-			klog.Warning("we don't support container command with more than 0 parameter, skip it!")
+			klog.Warning("old command in container: ", container.Name, " is ", container.Command)
+			container.Command = cmds
 		}
+
+		container.VolumeMounts = append(container.VolumeMounts, INIT_VOLMOUNT...)
+		deploy.Containers[index] = container
 
 	}
 	for _, container := range deploy.Containers {

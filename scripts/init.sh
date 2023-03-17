@@ -2,7 +2,7 @@
 
 set -e
 javaagentversion=3.4.10
-imgver=1.0.7
+imgver=1.0.8
 title="app-monitoring-webhook"
 namespace="kube-system"
 environment="test"
@@ -12,7 +12,7 @@ replicaCount="1"
 image="cloudfyy/akswebhook:${imgver}"
 agents="cloudfyy/application-insights-java-agent:${imgver}"
 javaagentoptions="-javaagent:applicationinsights-agent-${javaagentversion}.jar"
-javastartpackage="-jar department-service-1.2-SNAPSHOT.jar"
+javastartpackage="-jar /opt/demo/demo.jar"
 
 if [ ! -x "$(command -v kubectl)" ]; then
     echo "kubectl not found"
