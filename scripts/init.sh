@@ -12,7 +12,7 @@ replicaCount="1"
 image="cloudfyy/akswebhook:${imgver}"
 agents="cloudfyy/application-insights-java-agent:${imgver}"
 javaagentoptions="-javaagent:applicationinsights-agent-${javaagentversion}.jar"
-javastartpackage="-jar /opt/demo/demo.jar"
+javastartpackage="-jar demo.jar"
 
 if [ ! -x "$(command -v kubectl)" ]; then
     echo "kubectl not found"

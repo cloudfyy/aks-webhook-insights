@@ -17,7 +17,7 @@ RUN mvn clean install -Dmaven.test.skip=true
 # set base image for second stage
 FROM adoptopenjdk/openjdk11:jre-11.0.9_11-alpine
 # set deployment directory
-WORKDIR /opt/demo
+WORKDIR /app
 # copy over the built artifact from the maven image
-COPY --from=stage1 /opt/demo/target/demo.jar /opt/demo
-ENTRYPOINT  ["/bin/sh", "-c", "java", "-jar /opt/demo/demo.jar"]
+COPY --from=stage1 /opt/demo/target/demo.jar /app
+ENTRYPOINT  ["/bin/sh", "-c", "java", "-jar demo.jar"]
