@@ -7,7 +7,7 @@ cd ..
 docker build -t cloudfyy/akswebhook:${TAG} .
 docker push cloudfyy/akswebhook:${TAG}
 
-cd ../javatest
+cd ./javatest
 docker build -t cloudfyy/akswebhookjavademo:2.1 -f multi-stage.Dockerfile .
 docker push cloudfyy/akswebhookjavademo:2.1
 
