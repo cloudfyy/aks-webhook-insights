@@ -1,4 +1,4 @@
-FROM golang:1.18.4-alpine3.15 AS build
+FROM golang:1.20.2-alpine3.17 AS build
 ADD . /aks-webhook-insights
 
 ENV CGO_ENABLED=0
