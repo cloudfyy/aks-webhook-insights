@@ -178,11 +178,12 @@ func (s *WebhookServer) mutatePods(ar *admissionv1.AdmissionReview) *admissionv1
 		},
 	}
 	pod.Spec.InitContainers = append(pod.Spec.InitContainers, corev1.Container{
-		Name:         INIT_NAME,
-		Image:        INIT_IMAGE,
-		Command:      INIT_COMMAND,
-		Env:          INIT_ENV,
-		VolumeMounts: INIT_VOLMOUNT,
+		Name:            INIT_NAME,
+		Image:           INIT_IMAGE,
+		Command:         INIT_COMMAND,
+		Env:             INIT_ENV,
+		VolumeMounts:    INIT_VOLMOUNT,
+		ImagePullPolicy: "Always",
 	})
 
 	klog.Infof("Add initContainer: %+v", pod.Spec.InitContainers)
