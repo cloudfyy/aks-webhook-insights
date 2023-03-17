@@ -20,7 +20,10 @@
                 "content-type"
             ]
         },
-        "captureLoggingLevelAsCustomDimension": true        
+        "captureLoggingLevelAsCustomDimension": true ,
+        "springIntegration": {
+            "enabled": true
+        }       
     },
     
     "instrumentation": {
@@ -49,9 +52,6 @@
             "enabled": false
         },
         "redis": {
-            "enabled": true
-        },
-        "springIntegration": {
             "enabled": true
         }
     }
