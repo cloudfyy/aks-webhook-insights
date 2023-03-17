@@ -116,6 +116,11 @@ kubectl apply -f ./deployment/test-deployment.yaml
 ```
 kubectl get deploy java-test-deploy -o yaml
 ```
+
+8. 如果查看java测试pod，其输出如下：
+
+![测试成功](/img/success.png?raw=true "测试成功")
+
 8. 如果要查看webhook调试信息，请使用如下命令：
 
 得到pod名字
