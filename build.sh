@@ -8,8 +8,8 @@ docker build -t cloudfyy/akswebhook:${TAG} .
 docker push cloudfyy/akswebhook:${TAG}
 
 cd ../javatest
-docker build -t cloudfyy/akswebhookjavademo -f multi-stage.Dockerfile .
-docker push cloudfyy/akswebhookjavademo
+docker build -t cloudfyy/akswebhookjavademo:1.0 -f multi-stage.Dockerfile .
+docker push cloudfyy/akswebhookjavademo:1.0
 
 
 
