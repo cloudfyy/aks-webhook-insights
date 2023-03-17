@@ -11,7 +11,7 @@ testing="false"
 replicaCount="1"
 image="cloudfyy/akswebhook:${imgver}"
 agents="cloudfyy/application-insights-java-agent:${imgver}"
-javaagentoptions="-javaagent:applicationinsights-agent-${javaagentversion}.jar"
+
 javastartpackage="-jar demo.jar"
 
 if [ ! -x "$(command -v kubectl)" ]; then
@@ -142,7 +142,7 @@ app:
   kVerMinor: "${kVerMinor}"
   kVerRev: "${kVerRev}"
   caBundle: "${CA_BUNDLE}"
-  javaagentoptions: "${javaagentoptions}"
+  javaagentversion: "${javaagentversion}"
   javastartpackage: "${javastartpackage}"
 replicaCount: ${replicaCount}
 EOF

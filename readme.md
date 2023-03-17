@@ -53,7 +53,7 @@ helm有如下参数：
 |kVerMinor|Kubernetes次版本号|
 |kVerRev|Kubernetes修订版本号|
 |replicaCount|webhook的pod数目|
-|javaagentoptions|Application insight java包参数配置。比如：-javaagent:applicationinsights-agent-3.4.10.jar|
+|javaagentversion|Application insight java包版本号。默认为3.4.10。版本信息可以从以下地址获取：https://github.com/microsoft/ApplicationInsights-Java/releases|
 |javastartpackage|应用Java包启动配置。比如：-jar department-service-1.2-SNAPSHOT.jar|
 
 # 部署方法

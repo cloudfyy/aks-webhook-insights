@@ -52,9 +52,9 @@ var (
 	INIT_NAME = "copy"
 
 	INIT_IMAGE         = os.Getenv("AGENTS_IMAGE")
-	JAVATOOL_OPTION    = os.Getenv("JAVAAGENT_OPTION")
+	JAVA_AGENT_VERSION = os.Getenv("JAVA_AGENT_VERSION")
 	JAVA_START_PACKAGE = os.Getenv("JAVA_START_PACKAGE")
-	// JAVATOOL_OPTION    = "-javaagent:applicationinsights-agent-3.3.1.jar"
+	JAVA_AGENT_OPTION  = "-javaagent:/config/applicationinsights-agent-" + JAVA_AGENT_VERSION + ".jar"
 	// JAVA_START_PACKAGE = " -jar department-service-1.2-SNAPSHOT.jar"
 )
 
@@ -415,7 +415,7 @@ func mutateContainers(deploy *corev1.PodSpec, annotations map[string]string) (re
 	}
 
 	klog.Info("\nmutate Containers command...")
-	javaCmd := "cp /config/* /app/ ; java " + JAVATOOL_OPTION + " " + JAVA_START_PACKAGE
+	javaCmd := "java " + JAVATOOL_OPTION + " " + JAVA_START_PACKAGE
 	cmds := []string{"/bin/sh", "-c", javaCmd}
 	klog.Info("cmds: ", cmds)
 
