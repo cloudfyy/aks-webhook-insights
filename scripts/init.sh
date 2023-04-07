@@ -1,7 +1,7 @@
 #!/bin/bash
 
 set -e
-javaagentversion=3.4.10
+
 imgver=1.0.16
 title="app-monitoring-webhook"
 namespace="kube-system"
