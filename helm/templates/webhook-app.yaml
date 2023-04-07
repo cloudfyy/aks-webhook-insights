@@ -33,10 +33,12 @@ spec:
           env: 
            - name: AGENTS_IMAGE
              value: {{ .Values.app.agents}}
-           - name: JAVA_AGENT_VERSION
-             value: {{ .Values.app.javaagentversion}}
-           - name: JAVA_START_PACKAGE
-             value: {{ .Values.app.javastartpackage}}
+           #- name: JAVA_AGENT_VERSION
+           #  value: {{ .Values.app.javaagentversion}}
+           #- name: JAVA_START_PACKAGE
+           #  value: {{ .Values.app.javastartpackage}}
+           - name: JAVA_TOOL_OPTIONS
+             value: {{ .Values.app.JAVA_TOOL_OPTIONS}}
           ports:
             - containerPort: 1337
           resources:

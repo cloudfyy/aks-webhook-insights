@@ -51,11 +51,12 @@ var (
 
 	INIT_NAME = "copy"
 
-	INIT_IMAGE         = os.Getenv("AGENTS_IMAGE")
-	JAVA_AGENT_VERSION = os.Getenv("JAVA_AGENT_VERSION")
-	JAVA_START_PACKAGE = os.Getenv("JAVA_START_PACKAGE")
-	JAVA_AGENT_OPTION  = "-javaagent:/config/applicationinsights-agent-" + JAVA_AGENT_VERSION + ".jar"
+	INIT_IMAGE = os.Getenv("AGENTS_IMAGE")
+	// JAVA_AGENT_VERSION = os.Getenv("JAVA_AGENT_VERSION")
+	// JAVA_START_PACKAGE = os.Getenv("JAVA_START_PACKAGE")
+	// JAVA_AGENT_OPTION  = "-javaagent:/config/applicationinsights-agent-" + JAVA_AGENT_VERSION + ".jar"
 	// JAVA_START_PACKAGE = " -jar department-service-1.2-SNAPSHOT.jar"
+	JAVA_TOOL_OPTIONS = os.Getenv("JAVA_TOOL_OPTIONS")
 )
 
 type AksWebhookParam struct {
@@ -175,7 +176,7 @@ func (s *WebhookServer) mutatePods(ar *admissionv1.AdmissionReview) *admissionv1
 		corev1.EnvVar{
 			Name:  "ROLE_NAME",
 			Value: annotationMap[INSIGHT_ROLE],
-		},
+		}
 	}
 	pod.Spec.InitContainers = append(pod.Spec.InitContainers, corev1.Container{
 		Name:            INIT_NAME,
@@ -399,6 +400,10 @@ func mutateContainers(deploy *corev1.PodSpec, annotations map[string]string) (re
 			Name:  "ROLE_NAME",
 			Value: annotations[INSIGHT_ROLE],
 		},
+		corev1.EnvVar{
+			Name:  "JAVA_TOOL_OPTIONS",
+			Value: JAVA_TOOL_OPTIONS,
+		}
 	}
 
 	if len(deploy.InitContainers) == 0 {
@@ -415,29 +420,31 @@ func mutateContainers(deploy *corev1.PodSpec, annotations map[string]string) (re
 		klog.Info("\nmutate add initContainer success!")
 	}
 
-	klog.Info("\nmutate Containers command...")
-	javaCmd := "java " + JAVA_AGENT_OPTION + " " + JAVA_START_PACKAGE
-	cmds := []string{"/bin/sh", "-c", javaCmd}
-	klog.Info("cmds: ", cmds)
+	// klog.Info("\nmutate Containers command...")
+	// javaCmd := "java " + JAVA_AGENT_OPTION + " " + JAVA_START_PACKAGE
+	// cmds := []string{"/bin/sh", "-c", javaCmd}
+	// klog.Info("cmds: ", cmds)
 
 	for index, container := range deploy.Containers {
-		cmdLen := len(container.Command)
-		klog.Info("\nmutate Containers command len: ", cmdLen)
-		if cmdLen > 0 {
+		// cmdLen := len(container.Command)
+		// klog.Info("\nmutate Containers command len: ", cmdLen)
+		// if cmdLen > 0 {
 
-			klog.Warning("old command in container: ", container.Name, " is ", container.Command)
-		}
+		// 	klog.Warning("old command in container: ", container.Name, " is ", container.Command)
+		// }
 
-		container.Command = cmds
+		// container.Command = cmds
+		// add JAVA_TOOL_OPTIONS to env
+		container.Env = append(container.Env, INIT_ENV...)
 		container.VolumeMounts = append(container.VolumeMounts, INIT_VOLMOUNT...)
 		deploy.Containers[index] = container
 
 	}
 	for _, container := range deploy.Containers {
-		klog.Info("container commands: ", container.Command)
+		//klog.Info("container commands: ", container.Command)
 		klog.Info("container volume mounts: ", container.VolumeMounts)
 	}
-	klog.Info("\nmutate Containers command success!")
+	//klog.Info("\nmutate Containers command success!")
 
 	klog.Info("\nmutate Volumes command...")
 	deploy.Volumes = append(deploy.Volumes, INIT_VOL...)

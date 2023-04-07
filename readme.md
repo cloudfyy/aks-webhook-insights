@@ -53,8 +53,11 @@ helm有如下参数：
 |kVerMinor|Kubernetes次版本号|
 |kVerRev|Kubernetes修订版本号|
 |replicaCount|webhook的pod数目|
-|javaagentversion|Application insight java包版本号。默认为3.4.10。版本信息可以从以下地址获取：https://github.com/microsoft/ApplicationInsights-Java/releases|
-|javastartpackage|应用Java包启动配置。比如：-jar department-service-1.2-SNAPSHOT.jar|
+|JAVA_TOOL_OPTIONS|此参数会传递到受监控的容器内。我们在此参数中设置java agent。比如：
+-Doneagent.plugin.arms-agent.enabled=true -javaagent:/home/admin/.opt/ArmsAgent/arms-bootstrap-1.7.0-SNAPSHOT.jar -Darms.licenseKey=ijedb9 -Darms.appId=ijeutee9b39 -Darms.agent.env=ACSK8S  -Darms.agent.podinfo.path=/etc/podinfo -Doneagent.region=cn-hangzhou.
+
+agent版本默认为3.4.10。版本信息可以从以下地址获取：https://github.com/microsoft/ApplicationInsights-Java/releases|
+
 
 # 部署方法
 
