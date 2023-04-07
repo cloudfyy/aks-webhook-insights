@@ -176,7 +176,7 @@ func (s *WebhookServer) mutatePods(ar *admissionv1.AdmissionReview) *admissionv1
 		corev1.EnvVar{
 			Name:  "ROLE_NAME",
 			Value: annotationMap[INSIGHT_ROLE],
-		}
+		},
 	}
 	pod.Spec.InitContainers = append(pod.Spec.InitContainers, corev1.Container{
 		Name:            INIT_NAME,
@@ -403,7 +403,7 @@ func mutateContainers(deploy *corev1.PodSpec, annotations map[string]string) (re
 		corev1.EnvVar{
 			Name:  "JAVA_TOOL_OPTIONS",
 			Value: JAVA_TOOL_OPTIONS,
-		}
+		},
 	}
 
 	if len(deploy.InitContainers) == 0 {
