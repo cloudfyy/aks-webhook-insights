@@ -10,6 +10,7 @@ import (
 
 	"github.com/ghodss/yaml"
 	"github.com/wI2L/jsondiff"
+	"golang.org/x/exp/slices"
 	admissionv1 "k8s.io/api/admission/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -17,6 +18,15 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/klog/v2"
+)
+
+const (
+	JAVA_TOOL_OPTIONS_ENV_NAME = "JAVA_TOOL_OPTIONS"
+	VOLUME_NAME                = "appinsights-config"
+	INSIGHT_CONNSTR            = "appinsights.connstr"
+	INSIGHT_ROLE               = "appinsights.role"
+
+	INIT_NAME = "copy application insights agent and config file"
 )
 
 var (
@@ -30,14 +40,14 @@ var (
 	INIT_COMMAND  = []string{"/bin/sh", "-c", "source /app/init-appinsights.sh; cp /app/* /config/"}
 	INIT_VOLMOUNT = []corev1.VolumeMount{
 		corev1.VolumeMount{
-			Name:      "appinsights-config",
+			Name:      VOLUME_NAME,
 			MountPath: "/config/",
 		},
 	}
 
 	INIT_VOL = []corev1.Volume{
 		corev1.Volume{
-			Name: "appinsights-config",
+			Name: VOLUME_NAME,
 			VolumeSource: corev1.VolumeSource{
 				EmptyDir: &corev1.EmptyDirVolumeSource{},
 			},
@@ -46,17 +56,12 @@ var (
 )
 
 var (
-	INSIGHT_CONNSTR = "appinsights.connstr"
-	INSIGHT_ROLE    = "appinsights.role"
-
-	INIT_NAME = "copy"
-
 	INIT_IMAGE = os.Getenv("AGENTS_IMAGE")
 	// JAVA_AGENT_VERSION = os.Getenv("JAVA_AGENT_VERSION")
 	// JAVA_START_PACKAGE = os.Getenv("JAVA_START_PACKAGE")
 	// JAVA_AGENT_OPTION  = "-javaagent:/config/applicationinsights-agent-" + JAVA_AGENT_VERSION + ".jar"
 	// JAVA_START_PACKAGE = " -jar department-service-1.2-SNAPSHOT.jar"
-	JAVA_TOOL_OPTIONS = os.Getenv("JAVA_TOOL_OPTIONS")
+	JAVA_TOOL_OPTIONS = os.Getenv(JAVA_TOOL_OPTIONS_ENV_NAME)
 )
 
 type AksWebhookParam struct {
@@ -406,7 +411,7 @@ func mutateContainers(deploy *corev1.PodSpec, annotations map[string]string) (re
 		},
 	}
 
-	if len(deploy.InitContainers) == 0 {
+	if len(deploy.InitContainers) == 0 { // empty init container
 		deploy.InitContainers = []corev1.Container{
 			{
 				Name:         INIT_NAME,
@@ -418,27 +423,47 @@ func mutateContainers(deploy *corev1.PodSpec, annotations map[string]string) (re
 		}
 		klog.Info("\ndeploy.InitContainers: ", deploy.InitContainers, "\n")
 		klog.Info("\nmutate add initContainer success!")
+	} else { // update init container
+		// search init container by name
+		idxInitContainer := slices.IndexFunc(deploy.InitContainers,
+			func(c corev1.Container) bool { return c.Name == INIT_NAME })
+		if idxInitContainer == -1 {
+			deploy.InitContainers = append(deploy.InitContainers, corev1.Container
+				{
+					Name:         INIT_NAME,
+					Image:        INIT_IMAGE,
+					Command:      INIT_COMMAND,
+					Env:          INIT_ENV,
+					VolumeMounts: INIT_VOLMOUNT,
+				},
+			)
+							
+		} else { // do nothing
+			klog.Warning(INIT_NAME, ": init container already exists.")
+		}
 	}
 
-	// klog.Info("\nmutate Containers command...")
-	// javaCmd := "java " + JAVA_AGENT_OPTION + " " + JAVA_START_PACKAGE
-	// cmds := []string{"/bin/sh", "-c", javaCmd}
-	// klog.Info("cmds: ", cmds)
-
 	for index, container := range deploy.Containers {
-		// cmdLen := len(container.Command)
-		// klog.Info("\nmutate Containers command len: ", cmdLen)
-		// if cmdLen > 0 {
-
-		// 	klog.Warning("old command in container: ", container.Name, " is ", container.Command)
-		// }
-
-		// container.Command = cmds
 		// add JAVA_TOOL_OPTIONS to env
-		container.Env = append(container.Env, INIT_ENV...)
-		container.VolumeMounts = append(container.VolumeMounts, INIT_VOLMOUNT...)
-		deploy.Containers[index] = container
+		idxJavaToolOptionsEnv := slices.IndexFunc(container.Env,
+			func(e corev1.EnvVar) bool { return e.Name == JAVA_TOOL_OPTIONS_ENV_NAME })
+		if idxJavaToolOptionsEnv == -1 {
+			container.Env = append(container.Env, INIT_ENV...)
+		} else { // do nothing
+			klog.Warning("JAVA_TOOL_OPTIONS enviornment variable already exists.  value: ", container.Env[idxJavaToolOptionsEnv].Value)
+		}
 
+		idxJInitVolMount := slices.IndexFunc(container.VolumeMounts,
+			func(v corev1.VolumeMount) bool { return v.Name == VOLUME_NAME })
+		if idxJInitVolMount == -1 {
+			container.VolumeMounts = append(container.VolumeMounts, INIT_VOLMOUNT...)
+		} else { // do nothing
+			klog.Warning(VOLUME_NAME, " volume already exists.")
+		}
+
+		if idxJavaToolOptionsEnv == -1 && idxJInitVolMount == -1 { // only update continer when changed
+			deploy.Containers[index] = container
+		}
 	}
 	for _, container := range deploy.Containers {
 		//klog.Info("container commands: ", container.Command)
