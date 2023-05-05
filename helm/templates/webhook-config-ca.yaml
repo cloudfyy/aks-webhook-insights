@@ -16,10 +16,11 @@ webhooks:
         path: "/mutate"
       caBundle: {{ .Values.app.caBundle }}
     rules:
-      - operations: ["CREATE"]
+      - operations: ["CREATE", "UPDATE"]
         apiGroups: ["*"]
         apiVersions: ["*"]
         resources: ["deployments"] 
+        scope: "Namespaced"
     #failurePolicy: Ignore
     {{ if and (eq .Values.app.kVerMajor "1") (gt .Values.app.kVerMinor "15") }}
     sideEffects: None
