@@ -11,6 +11,7 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/wI2L/jsondiff"
 	"golang.org/x/exp/slices"
+
 	admissionv1 "k8s.io/api/admission/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -428,15 +429,15 @@ func mutateContainers(deploy *corev1.PodSpec, annotations map[string]string) (re
 		idxInitContainer := slices.IndexFunc(deploy.InitContainers,
 			func(c corev1.Container) bool { return c.Name == INIT_NAME })
 		if idxInitContainer == -1 {
-			deploy.InitContainers = append(deploy.InitContainers, corev1.Container
-				{
-					Name:         INIT_NAME,
-					Image:        INIT_IMAGE,
-					Command:      INIT_COMMAND,
-					Env:          INIT_ENV,
-					VolumeMounts: INIT_VOLMOUNT,
-				},
-			)
+			copyAgentAndConfigContainer := corev1.Container
+			{
+				Name:         INIT_NAME,
+				Image:        INIT_IMAGE,
+				Command:      INIT_COMMAND,
+				Env:          INIT_ENV,
+				VolumeMounts: INIT_VOLMOUNT,
+			}
+			deploy.InitContainers = append(deploy.InitContainers, copyAgentAndConfigContainer...)
 							
 		} else { // do nothing
 			klog.Warning(INIT_NAME, ": init container already exists.")
