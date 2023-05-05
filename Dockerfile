@@ -6,7 +6,7 @@ ENV GOOS=linux
 ENV GOARCH=amd64
 ENV GO111MODULE=on
 
-RUN cd /aks-webhook-insights && go build -o aksWebhook
+RUN cd /aks-webhook-insights && go get golang.org/x/exp/slices && go build -o aksWebhook
 
 FROM alpine:latest as webhook
 ENV SERVERPORT=1337
