@@ -412,16 +412,18 @@ func mutateContainers(deploy *corev1.PodSpec, annotations map[string]string) (re
 		},
 	}
 
+	copyAgentAndConfigContainer := []corev1.Container{
+		{
+			Name:         INIT_NAME,
+			Image:        INIT_IMAGE,
+			Command:      INIT_COMMAND,
+			Env:          INIT_ENV,
+			VolumeMounts: INIT_VOLMOUNT,
+		},
+	}
+
 	if len(deploy.InitContainers) == 0 { // empty init container
-		deploy.InitContainers = []corev1.Container{
-			{
-				Name:         INIT_NAME,
-				Image:        INIT_IMAGE,
-				Command:      INIT_COMMAND,
-				Env:          INIT_ENV,
-				VolumeMounts: INIT_VOLMOUNT,
-			},
-		}
+		deploy.InitContainers = copyAgentAndConfigContainer
 		klog.Info("\ndeploy.InitContainers: ", deploy.InitContainers, "\n")
 		klog.Info("\nmutate add initContainer success!")
 	} else { // update init container
@@ -429,16 +431,9 @@ func mutateContainers(deploy *corev1.PodSpec, annotations map[string]string) (re
 		idxInitContainer := slices.IndexFunc(deploy.InitContainers,
 			func(c corev1.Container) bool { return c.Name == INIT_NAME })
 		if idxInitContainer == -1 {
-			copyAgentAndConfigContainer := corev1.Container
-			{
-				Name:         INIT_NAME,
-				Image:        INIT_IMAGE,
-				Command:      INIT_COMMAND,
-				Env:          INIT_ENV,
-				VolumeMounts: INIT_VOLMOUNT,
-			}
 			deploy.InitContainers = append(deploy.InitContainers, copyAgentAndConfigContainer...)
-							
+			klog.Info("\ndeploy.InitContainers: ", deploy.InitContainers, "\n")
+			klog.Info("\nmutate add initContainer success!")
 		} else { // do nothing
 			klog.Warning(INIT_NAME, ": init container already exists.")
 		}
