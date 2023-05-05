@@ -2,7 +2,7 @@
 
 set -e
 
-imgver=1.0.16
+imgver=1.0.17
 title="app-monitoring-webhook"
 namespace="kube-system"
 environment="test"
