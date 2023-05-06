@@ -27,7 +27,7 @@ const (
 	INSIGHT_CONNSTR            = "appinsights.connstr"
 	INSIGHT_ROLE               = "appinsights.role"
 
-	INIT_NAME = "copy application insights agent and config file"
+	INIT_NAME = "copy-application-insights-agent-and-config-file"
 )
 
 var (
