@@ -1,0 +1,104 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    appinsights.connstr: InstrumentationKey=ed9baecd-d00e-46fd-a584-baefb918ca65;IngestionEndpoint=https://japaneast-1.in.applicationinsights.azure.com/;LiveEndpoint=https://japaneast.livediagnostics.monitor.azure.com/
+    appinsights.role: department-service
+    deployment.kubernetes.io/revision: "1"
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{"appinsights.connstr":"InstrumentationKey=ed9baecd-d00e-46fd-a584-baefb918ca65;IngestionEndpoint=https://japaneast-1.in.applicationinsights.azure.com/;LiveEndpoint=https://japaneast.livediagnostics.monitor.azure.com/","appinsights.role":"department-service"},"name":"java-test-deploy","namespace":"default"},"spec":{"selector":{"matchLabels":{"app":"javademo"}},"template":{"metadata":{"labels":{"app":"javademo"}},"spec":{"containers":[{"command":["/bin/sh","-c","java -jar /opt/demo/demo.jar"],"image":"cloudfyy/akswebhookjavademo:2.2","imagePullPolicy":"Always","name":"javademo-mutate","ports":[{"containerPort":8080}]}]}}}}
+  creationTimestamp: "2023-05-06T04:13:55Z"
+  generation: 1
+  name: java-test-deploy
+  namespace: default
+  resourceVersion: "75583929"
+  uid: fb097c30-fab2-47da-8bc5-4a05d7d4e176
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: javademo
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: javademo
+    spec:
+      containers:
+      - command:
+        - /bin/sh
+        - -c
+        - java -jar /opt/demo/demo.jar
+        env:
+        - name: appinsights.connstr
+          value: InstrumentationKey=ed9baecd-d00e-46fd-a584-baefb918ca65;IngestionEndpoint=https://japaneast-1.in.applicationinsights.azure.com/;LiveEndpoint=https://japaneast.livediagnostics.monitor.azure.com/
+        - name: appinsights.role
+          value: department-service
+        - name: JAVA_TOOL_OPTIONS
+          value: -javaagent:/opt/aiagent/applicationinsights-agent-3.4.10.jar
+        image: cloudfyy/akswebhookjavademo:2.2
+        imagePullPolicy: Always
+        name: javademo-mutate
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /config/
+          name: appinsights-config
+      dnsPolicy: ClusterFirst
+      initContainers:
+      - command:
+        - /bin/sh
+        - -c
+        - source /app/init-appinsights.sh; cp /app/* /config/
+        env:
+        - name: appinsights.connstr
+          value: InstrumentationKey=ed9baecd-d00e-46fd-a584-baefb918ca65;IngestionEndpoint=https://japaneast-1.in.applicationinsights.azure.com/;LiveEndpoint=https://japaneast.livediagnostics.monitor.azure.com/
+        - name: appinsights.role
+          value: department-service
+        - name: JAVA_TOOL_OPTIONS
+          value: -javaagent:/opt/aiagent/applicationinsights-agent-3.4.10.jar
+        image: cloudfyy/application-insights-java-agent:1.0.19
+        imagePullPolicy: IfNotPresent
+        name: copy-application-insights-agent-and-config-file
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /config/
+          name: appinsights-config
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - emptyDir: {}
+        name: appinsights-config
+status:
+  conditions:
+  - lastTransitionTime: "2023-05-06T04:13:55Z"
+    lastUpdateTime: "2023-05-06T04:14:19Z"
+    message: ReplicaSet "java-test-deploy-86c9d59fb6" has successfully progressed.
+    reason: NewReplicaSetAvailable
+    status: "True"
+    type: Progressing
+  - lastTransitionTime: "2023-05-06T04:14:20Z"
+    lastUpdateTime: "2023-05-06T04:14:20Z"
+    message: Deployment does not have minimum availability.
+    reason: MinimumReplicasUnavailable
+    status: "False"
+    type: Available
+  observedGeneration: 1
+  replicas: 1
+  unavailableReplicas: 1
+  updatedReplicas: 1
