@@ -432,11 +432,16 @@ func mutateContainers(deploy *corev1.PodSpec, annotations map[string]string) (re
 			func(c corev1.Container) bool { return c.Name == INIT_NAME })
 		if idxInitContainer == -1 {
 			deploy.InitContainers = append(deploy.InitContainers, copyAgentAndConfigContainer...)
-			klog.Info("\ndeploy.InitContainers: ", deploy.InitContainers, "\n")
-			klog.Info("\nmutate add initContainer success!")
-		} else { // do nothing
-			klog.Warning(INIT_NAME, ": init container already exists.")
+
+		} else { // replace with new value
+			klog.Warning(INIT_NAME, ": init container already exists.\n")
+			deploy.InitContainers[idxInitContainer] = copyAgentAndConfigContainer[0]
+			klog.Warning(INIT_NAME, ": init container new value: ",
+				deploy.InitContainers[idxInitContainer], "\n")
 		}
+
+		klog.Info("\ndeploy.InitContainers: ", deploy.InitContainers, "\n")
+		klog.Info("\nmutate add initContainer success!")
 	}
 
 	for index, container := range deploy.Containers {
@@ -445,21 +450,25 @@ func mutateContainers(deploy *corev1.PodSpec, annotations map[string]string) (re
 			func(e corev1.EnvVar) bool { return e.Name == JAVA_TOOL_OPTIONS_ENV_NAME })
 		if idxJavaToolOptionsEnv == -1 {
 			container.Env = append(container.Env, INIT_ENV...)
-		} else { // do nothing
+		} else {
 			klog.Warning("JAVA_TOOL_OPTIONS enviornment variable already exists.  value: ", container.Env[idxJavaToolOptionsEnv].Value)
+			// replace with new value
+			container.Env[idxJavaToolOptionsEnv] = INIT_ENV[2]
+			klog.Info("JAVA_TOOL_OPTIONS enviornment variable new value: ", container.Env[idxJavaToolOptionsEnv].Value)
 		}
 
 		idxJInitVolMount := slices.IndexFunc(container.VolumeMounts,
 			func(v corev1.VolumeMount) bool { return v.Name == VOLUME_NAME })
 		if idxJInitVolMount == -1 {
 			container.VolumeMounts = append(container.VolumeMounts, INIT_VOLMOUNT...)
-		} else { // do nothing
-			klog.Warning(VOLUME_NAME, " volume already exists.")
+		} else { // replace with new value
+			klog.Warning(VOLUME_NAME, ": volume already exists.")
+			container.VolumeMounts[idxJInitVolMount] = INIT_VOLMOUNT[0]
+			klog.Warning(VOLUME_NAME, ": volume new value: ", container.VolumeMounts[idxJInitVolMount])
 		}
 
-		if idxJavaToolOptionsEnv == -1 && idxJInitVolMount == -1 { // only update continer when changed
-			deploy.Containers[index] = container
-		}
+		deploy.Containers[index] = container
+
 	}
 	for _, container := range deploy.Containers {
 		//klog.Info("container commands: ", container.Command)
