@@ -23,6 +23,8 @@ import (
 
 const (
 	JAVA_TOOL_OPTIONS_ENV_NAME = "JAVA_TOOL_OPTIONS"
+	CONNECTION_STRING_NAME     = "appinsights.connstr"
+	ROLE_NAME_STRING_NAME      = "appinsights.role"
 	VOLUME_NAME                = "appinsights-config"
 	INSIGHT_CONNSTR            = "appinsights.connstr"
 	INSIGHT_ROLE               = "appinsights.role"
@@ -399,15 +401,15 @@ func mutationRequired(annotations map[string]string) bool {
 func mutateContainers(deploy *corev1.PodSpec, annotations map[string]string) (result *corev1.PodSpec) {
 	INIT_ENV := []corev1.EnvVar{
 		corev1.EnvVar{
-			Name:  "CONNECTION_STRING",
+			Name:  CONNECTION_STRING_NAME,
 			Value: annotations[INSIGHT_CONNSTR],
 		},
 		corev1.EnvVar{
-			Name:  "ROLE_NAME",
+			Name:  ROLE_NAME_STRING_NAME,
 			Value: annotations[INSIGHT_ROLE],
 		},
 		corev1.EnvVar{
-			Name:  "JAVA_TOOL_OPTIONS",
+			Name:  JAVA_TOOL_OPTIONS_ENV_NAME,
 			Value: JAVA_TOOL_OPTIONS,
 		},
 	}
@@ -445,11 +447,35 @@ func mutateContainers(deploy *corev1.PodSpec, annotations map[string]string) (re
 	}
 
 	for index, container := range deploy.Containers {
+		// add connection string to env
+		idxConnectionStringEnv := slices.IndexFunc(container.Env,
+			func(e corev1.EnvVar) bool { return e.Name == CONNECTION_STRING_NAME })
+		if idxConnectionStringEnv == -1 {
+			container.Env = append(container.Env, INIT_ENV[0])
+		} else {
+			klog.Warning("CONNECTION_STRING enviornment variable already exists.  value: ", container.Env[idxConnectionStringEnv].Value)
+			// replace with new value
+			container.Env[idxConnectionStringEnv] = INIT_ENV[0]
+			klog.Info("CONNECTION_STRING enviornment variable new value: ", container.Env[idxConnectionStringEnv].Value)
+		}
+
+		// add connection string to env
+		idxRoleNameEnv := slices.IndexFunc(container.Env,
+			func(e corev1.EnvVar) bool { return e.Name == ROLE_NAME_STRING_NAME })
+		if idxRoleNameEnv == -1 {
+			container.Env = append(container.Env, INIT_ENV[1])
+		} else {
+			klog.Warning("ROLE_NAME enviornment variable already exists.  value: ", container.Env[idxRoleNameEnv].Value)
+			// replace with new value
+			container.Env[idxRoleNameEnv] = INIT_ENV[1]
+			klog.Info("ROLE_NAME enviornment variable new value: ", container.Env[idxRoleNameEnv].Value)
+		}
+
 		// add JAVA_TOOL_OPTIONS to env
 		idxJavaToolOptionsEnv := slices.IndexFunc(container.Env,
 			func(e corev1.EnvVar) bool { return e.Name == JAVA_TOOL_OPTIONS_ENV_NAME })
 		if idxJavaToolOptionsEnv == -1 {
-			container.Env = append(container.Env, INIT_ENV...)
+			container.Env = append(container.Env, INIT_ENV[2])
 		} else {
 			klog.Warning("JAVA_TOOL_OPTIONS enviornment variable already exists.  value: ", container.Env[idxJavaToolOptionsEnv].Value)
 			// replace with new value
