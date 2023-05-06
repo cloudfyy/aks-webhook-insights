@@ -470,14 +470,23 @@ func mutateContainers(deploy *corev1.PodSpec, annotations map[string]string) (re
 		deploy.Containers[index] = container
 
 	}
-	for _, container := range deploy.Containers {
-		//klog.Info("container commands: ", container.Command)
-		klog.Info("container volume mounts: ", container.VolumeMounts)
-	}
+	//for _, container := range deploy.Containers {
+	//klog.Info("container commands: ", container.Command)
+	//klog.Info("container volume mounts: ", container.VolumeMounts)
+	//}
 	//klog.Info("\nmutate Containers command success!")
 
 	klog.Info("\nmutate Volumes command...")
-	deploy.Volumes = append(deploy.Volumes, INIT_VOL...)
+	idxVolume := slices.IndexFunc(deploy.Volumes,
+		func(v corev1.Volume) bool { return v.Name == VOLUME_NAME })
+	if idxVolume == -1 {
+		deploy.Volumes = append(deploy.Volumes, INIT_VOL...)
+	} else { // replace with new value
+		klog.Warning(VOLUME_NAME, ": volume already exists.")
+		deploy.Volumes[idxVolume] = INIT_VOL[0]
+		klog.Warning(VOLUME_NAME, ": volume new value: ", deploy.Volumes[idxVolume])
+	}
+
 	klog.Info("\nmutate Volumes success...")
 
 	return deploy
