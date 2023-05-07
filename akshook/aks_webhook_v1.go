@@ -279,31 +279,157 @@ func (s *WebhookServer) mutateJsonDiff(ar *admissionv1.AdmissionReview) *admissi
 	// Deployment、Service -> annotations： AnnotationMutateKey， AnnotationStatusKey
 	req := ar.Request
 
-	var (
-		deployment appsv1.Deployment
-	)
+	var ()
 
 	klog.Infof("AdmissionReview for Kind=%s, Namespace=%s Name=%s UID=%s",
 		req.Kind.Kind, req.Namespace, req.Name, req.UID)
 
 	switch req.Kind.Kind {
 	case "Deployment":
-		//var deployment appsv1.Deployment
-		if err := json.Unmarshal(req.Object.Raw, &deployment); err != nil {
-			klog.Errorf("Can't not unmarshal raw object: %v", err)
-			return &admissionv1.AdmissionResponse{
-				Result: &metav1.Status{
-					Code:    http.StatusBadRequest,
-					Message: err.Error(),
-				},
+		{
+			var deployment appsv1.Deployment
+			if err := json.Unmarshal(req.Object.Raw, &deployment); err != nil {
+				klog.Errorf("Can't not unmarshal raw object: %v", err)
+				return &admissionv1.AdmissionResponse{
+					Result: &metav1.Status{
+						Code:    http.StatusBadRequest,
+						Message: err.Error(),
+					},
+				}
+			}
+			anotations := deployment.ObjectMeta.GetAnnotations()
+			newDeploy := deployment.DeepCopy()
+			ppodSpec := &newDeploy.Spec.Template.Spec
+
+			klog.Info("deployment metadata: ", deployment.ObjectMeta, "\n")
+			if !mutationRequired(anotations) {
+				klog.Info("No need to Mutate")
+				return &admissionv1.AdmissionResponse{
+					Allowed: true,
+				}
 			}
 
+			newPodSpec := mutateContainers(ppodSpec, anotations)
+
+			if logPatchedYAML {
+				klog.Info("\n---------begin mumated yaml---------")
+				bytes, err := json.Marshal(newPodSpec)
+				if err == nil {
+					yamlStr, err := yaml.JSONToYAML(bytes)
+					if err == nil {
+						klog.Info("\n" + string(yamlStr))
+					}
+				}
+				klog.Info("\n---------ended mumated yaml---------")
+			}
+
+			patch, err := jsondiff.Compare(deployment, newDeploy)
+			if err != nil {
+				klog.Errorf("json diff marshal error: %v", err)
+				return &admissionv1.AdmissionResponse{
+					Result: &metav1.Status{
+						Code:    http.StatusBadRequest,
+						Message: err.Error(),
+					},
+				}
+			}
+
+			klog.Info("\n---------JSON diff begins---------\n")
+			klog.Info(patch)
+			klog.Info("\n---------JSON diff ends---------\n")
+
+			patchBytes, err := json.MarshalIndent(patch, "", "    ")
+			if err != nil {
+				klog.Errorf("patch marshal error: %v", err)
+				return &admissionv1.AdmissionResponse{
+					Result: &metav1.Status{
+						Code:    http.StatusBadRequest,
+						Message: err.Error(),
+					},
+				}
+			}
+			return &admissionv1.AdmissionResponse{
+				Allowed: true,
+				Patch:   patchBytes,
+				PatchType: func() *admissionv1.PatchType {
+					pt := admissionv1.PatchTypeJSONPatch
+					return &pt
+				}(),
+			}
 		}
-	/*case "Service":
-	klog.Errorf("No need to Mutate Service")
-	return &admissionv1.AdmissionResponse{
-		Allowed: true,
-	}*/
+
+	case "ReplicaSet":
+		{
+			var replicaSet appsv1.ReplicaSet
+			if err := json.Unmarshal(req.Object.Raw, &replicaSet); err != nil {
+				klog.Errorf("Can't not unmarshal raw object: %v", err)
+				return &admissionv1.AdmissionResponse{
+					Result: &metav1.Status{
+						Code:    http.StatusBadRequest,
+						Message: err.Error(),
+					},
+				}
+			}
+			anotations := replicaSet.ObjectMeta.GetAnnotations()
+			newRS := replicaSet.DeepCopy()
+			ppodSpec := &newRS.Spec.Template.Spec
+
+			klog.Info("replicaSet metadata: ", replicaSet.ObjectMeta, "\n")
+			if !mutationRequired(anotations) {
+				klog.Info("No need to Mutate")
+				return &admissionv1.AdmissionResponse{
+					Allowed: true,
+				}
+			}
+
+			newPodSpec := mutateContainers(ppodSpec, anotations)
+
+			if logPatchedYAML {
+				klog.Info("\n---------begin mumated yaml---------")
+				bytes, err := json.Marshal(newPodSpec)
+				if err == nil {
+					yamlStr, err := yaml.JSONToYAML(bytes)
+					if err == nil {
+						klog.Info("\n" + string(yamlStr))
+					}
+				}
+				klog.Info("\n---------ended mumated yaml---------")
+			}
+
+			patch, err := jsondiff.Compare(replicaSet, newRS)
+			if err != nil {
+				klog.Errorf("json diff marshal error: %v", err)
+				return &admissionv1.AdmissionResponse{
+					Result: &metav1.Status{
+						Code:    http.StatusBadRequest,
+						Message: err.Error(),
+					},
+				}
+			}
+
+			klog.Info("\n---------JSON diff begins---------\n")
+			klog.Info(patch)
+			klog.Info("\n---------JSON diff ends---------\n")
+
+			patchBytes, err := json.MarshalIndent(patch, "", "    ")
+			if err != nil {
+				klog.Errorf("patch marshal error: %v", err)
+				return &admissionv1.AdmissionResponse{
+					Result: &metav1.Status{
+						Code:    http.StatusBadRequest,
+						Message: err.Error(),
+					},
+				}
+			}
+			return &admissionv1.AdmissionResponse{
+				Allowed: true,
+				Patch:   patchBytes,
+				PatchType: func() *admissionv1.PatchType {
+					pt := admissionv1.PatchTypeJSONPatch
+					return &pt
+				}(),
+			}
+		}
 	/*case "Pod":
 	var pod corev1.Pod
 	if err := json.Unmarshal(req.Object.Raw, &pod); err != nil {
@@ -324,63 +450,6 @@ func (s *WebhookServer) mutateJsonDiff(ar *admissionv1.AdmissionReview) *admissi
 		}
 	}
 
-	klog.Info("deployment metadata: ", deployment.ObjectMeta, "\n")
-	if !mutationRequired(deployment.ObjectMeta.GetAnnotations()) {
-		klog.Info("No need to Mutate")
-		return &admissionv1.AdmissionResponse{
-			Allowed: true,
-		}
-	}
-
-	newDeploy := deployment.DeepCopy()
-	newPodSpec := mutateContainers(&newDeploy.Spec.Template.Spec, deployment.ObjectMeta.GetAnnotations())
-
-	if logPatchedYAML {
-		klog.Info("\n---------begin mumated yaml---------")
-		bytes, err := json.Marshal(newPodSpec)
-		if err == nil {
-			yamlStr, err := yaml.JSONToYAML(bytes)
-			if err == nil {
-				klog.Info("\n" + string(yamlStr))
-			}
-		}
-		klog.Info("\n---------ended mumated yaml---------")
-	}
-
-	patch, err := jsondiff.Compare(deployment, newDeploy)
-	if err != nil {
-		klog.Errorf("json diff marshal error: %v", err)
-		return &admissionv1.AdmissionResponse{
-			Result: &metav1.Status{
-				Code:    http.StatusBadRequest,
-				Message: err.Error(),
-			},
-		}
-	}
-
-	klog.Info("\n---------JSON diff begins---------\n")
-	klog.Info(patch)
-	klog.Info("\n---------JSON diff ends---------\n")
-
-	patchBytes, err := json.MarshalIndent(patch, "", "    ")
-	if err != nil {
-		klog.Errorf("patch marshal error: %v", err)
-		return &admissionv1.AdmissionResponse{
-			Result: &metav1.Status{
-				Code:    http.StatusBadRequest,
-				Message: err.Error(),
-			},
-		}
-	}
-
-	return &admissionv1.AdmissionResponse{
-		Allowed: true,
-		Patch:   patchBytes,
-		PatchType: func() *admissionv1.PatchType {
-			pt := admissionv1.PatchTypeJSONPatch
-			return &pt
-		}(),
-	}
 }
 
 func mutationRequired(annotations map[string]string) bool {
@@ -398,7 +467,7 @@ func mutationRequired(annotations map[string]string) bool {
 	return false
 }
 
-func mutateContainers(deploy *corev1.PodSpec, annotations map[string]string) (result *corev1.PodSpec) {
+func mutateContainers(podSpec *corev1.PodSpec, annotations map[string]string) (result *corev1.PodSpec) {
 	INIT_ENV := []corev1.EnvVar{
 		corev1.EnvVar{
 			Name:  CONNECTION_STRING_NAME,
@@ -424,29 +493,29 @@ func mutateContainers(deploy *corev1.PodSpec, annotations map[string]string) (re
 		},
 	}
 
-	if len(deploy.InitContainers) == 0 { // empty init container
-		deploy.InitContainers = copyAgentAndConfigContainer
-		klog.Info("\ndeploy.InitContainers: ", deploy.InitContainers, "\n")
+	if len(podSpec.InitContainers) == 0 { // empty init container
+		podSpec.InitContainers = copyAgentAndConfigContainer
+		klog.Info("\npodSpec.InitContainers: ", podSpec.InitContainers, "\n")
 		klog.Info("\nmutate add initContainer success!")
 	} else { // update init container
 		// search init container by name
-		idxInitContainer := slices.IndexFunc(deploy.InitContainers,
+		idxInitContainer := slices.IndexFunc(podSpec.InitContainers,
 			func(c corev1.Container) bool { return c.Name == INIT_NAME })
 		if idxInitContainer == -1 {
-			deploy.InitContainers = append(deploy.InitContainers, copyAgentAndConfigContainer...)
+			podSpec.InitContainers = append(podSpec.InitContainers, copyAgentAndConfigContainer...)
 
 		} else { // replace with new value
 			klog.Warning(INIT_NAME, ": init container already exists.\n")
-			deploy.InitContainers[idxInitContainer] = copyAgentAndConfigContainer[0]
+			podSpec.InitContainers[idxInitContainer] = copyAgentAndConfigContainer[0]
 			klog.Warning(INIT_NAME, ": init container new value: ",
-				deploy.InitContainers[idxInitContainer], "\n")
+				podSpec.InitContainers[idxInitContainer], "\n")
 		}
 
-		klog.Info("\ndeploy.InitContainers: ", deploy.InitContainers, "\n")
+		klog.Info("\npodSpec.InitContainers: ", podSpec.InitContainers, "\n")
 		klog.Info("\nmutate add initContainer success!")
 	}
 
-	for index, container := range deploy.Containers {
+	for index, container := range podSpec.Containers {
 		// add connection string to env
 		idxConnectionStringEnv := slices.IndexFunc(container.Env,
 			func(e corev1.EnvVar) bool { return e.Name == CONNECTION_STRING_NAME })
@@ -493,7 +562,7 @@ func mutateContainers(deploy *corev1.PodSpec, annotations map[string]string) (re
 			klog.Warning(VOLUME_NAME, ": volume new value: ", container.VolumeMounts[idxJInitVolMount])
 		}
 
-		deploy.Containers[index] = container
+		podSpec.Containers[index] = container
 
 	}
 	//for _, container := range deploy.Containers {
@@ -503,17 +572,17 @@ func mutateContainers(deploy *corev1.PodSpec, annotations map[string]string) (re
 	//klog.Info("\nmutate Containers command success!")
 
 	klog.Info("\nmutate Volumes command...")
-	idxVolume := slices.IndexFunc(deploy.Volumes,
+	idxVolume := slices.IndexFunc(podSpec.Volumes,
 		func(v corev1.Volume) bool { return v.Name == VOLUME_NAME })
 	if idxVolume == -1 {
-		deploy.Volumes = append(deploy.Volumes, INIT_VOL...)
+		podSpec.Volumes = append(podSpec.Volumes, INIT_VOL...)
 	} else { // replace with new value
 		klog.Warning(VOLUME_NAME, ": volume already exists.")
-		deploy.Volumes[idxVolume] = INIT_VOL[0]
-		klog.Warning(VOLUME_NAME, ": volume new value: ", deploy.Volumes[idxVolume])
+		podSpec.Volumes[idxVolume] = INIT_VOL[0]
+		klog.Warning(VOLUME_NAME, ": volume new value: ", podSpec.Volumes[idxVolume])
 	}
 
 	klog.Info("\nmutate Volumes success...")
 
-	return deploy
+	return podSpec
 }
