@@ -286,150 +286,147 @@ func (s *WebhookServer) mutateJsonDiff(ar *admissionv1.AdmissionReview) *admissi
 
 	switch req.Kind.Kind {
 	case "Deployment":
-		{
-			var deployment appsv1.Deployment
-			if err := json.Unmarshal(req.Object.Raw, &deployment); err != nil {
-				klog.Errorf("Can't not unmarshal raw object: %v", err)
-				return &admissionv1.AdmissionResponse{
-					Result: &metav1.Status{
-						Code:    http.StatusBadRequest,
-						Message: err.Error(),
-					},
-				}
+		var deployment appsv1.Deployment
+		if err := json.Unmarshal(req.Object.Raw, &deployment); err != nil {
+			klog.Errorf("Can't not unmarshal raw object: %v", err)
+			return &admissionv1.AdmissionResponse{
+				Result: &metav1.Status{
+					Code:    http.StatusBadRequest,
+					Message: err.Error(),
+				},
 			}
-			anotations := deployment.ObjectMeta.GetAnnotations()
-			newDeploy := deployment.DeepCopy()
-			ppodSpec := &newDeploy.Spec.Template.Spec
+		}
+		anotations := deployment.ObjectMeta.GetAnnotations()
+		newDeploy := deployment.DeepCopy()
+		ppodSpec := &newDeploy.Spec.Template.Spec
 
-			klog.Info("deployment metadata: ", deployment.ObjectMeta, "\n")
-			if !mutationRequired(anotations) {
-				klog.Info("No need to Mutate")
-				return &admissionv1.AdmissionResponse{
-					Allowed: true,
-				}
-			}
-
-			newPodSpec := mutateContainers(ppodSpec, anotations)
-
-			if logPatchedYAML {
-				klog.Info("\n---------begin mumated yaml---------")
-				bytes, err := json.Marshal(newPodSpec)
-				if err == nil {
-					yamlStr, err := yaml.JSONToYAML(bytes)
-					if err == nil {
-						klog.Info("\n" + string(yamlStr))
-					}
-				}
-				klog.Info("\n---------ended mumated yaml---------")
-			}
-
-			patch, err := jsondiff.Compare(deployment, newDeploy)
-			if err != nil {
-				klog.Errorf("json diff marshal error: %v", err)
-				return &admissionv1.AdmissionResponse{
-					Result: &metav1.Status{
-						Code:    http.StatusBadRequest,
-						Message: err.Error(),
-					},
-				}
-			}
-
-			klog.Info("\n---------JSON diff begins---------\n")
-			klog.Info(patch)
-			klog.Info("\n---------JSON diff ends---------\n")
-
-			patchBytes, err := json.MarshalIndent(patch, "", "    ")
-			if err != nil {
-				klog.Errorf("patch marshal error: %v", err)
-				return &admissionv1.AdmissionResponse{
-					Result: &metav1.Status{
-						Code:    http.StatusBadRequest,
-						Message: err.Error(),
-					},
-				}
-			}
+		klog.Info("deployment metadata: ", deployment.ObjectMeta, "\n")
+		if !mutationRequired(anotations) {
+			klog.Info("No need to Mutate")
 			return &admissionv1.AdmissionResponse{
 				Allowed: true,
-				Patch:   patchBytes,
-				PatchType: func() *admissionv1.PatchType {
-					pt := admissionv1.PatchTypeJSONPatch
-					return &pt
-				}(),
 			}
+		}
+
+		newPodSpec := mutateContainers(ppodSpec, anotations)
+
+		if logPatchedYAML {
+			klog.Info("\n---------begin mumated yaml---------")
+			bytes, err := json.Marshal(newPodSpec)
+			if err == nil {
+				yamlStr, err := yaml.JSONToYAML(bytes)
+				if err == nil {
+					klog.Info("\n" + string(yamlStr))
+				}
+			}
+			klog.Info("\n---------ended mumated yaml---------")
+		}
+
+		patch, err := jsondiff.Compare(deployment, newDeploy)
+		if err != nil {
+			klog.Errorf("json diff marshal error: %v", err)
+			return &admissionv1.AdmissionResponse{
+				Result: &metav1.Status{
+					Code:    http.StatusBadRequest,
+					Message: err.Error(),
+				},
+			}
+		}
+
+		klog.Info("\n---------JSON diff begins---------\n")
+		klog.Info(patch)
+		klog.Info("\n---------JSON diff ends---------\n")
+
+		patchBytes, err := json.MarshalIndent(patch, "", "    ")
+		if err != nil {
+			klog.Errorf("patch marshal error: %v", err)
+			return &admissionv1.AdmissionResponse{
+				Result: &metav1.Status{
+					Code:    http.StatusBadRequest,
+					Message: err.Error(),
+				},
+			}
+		}
+		return &admissionv1.AdmissionResponse{
+			Allowed: true,
+			Patch:   patchBytes,
+			PatchType: func() *admissionv1.PatchType {
+				pt := admissionv1.PatchTypeJSONPatch
+				return &pt
+			}(),
 		}
 
 	case "ReplicaSet":
-		{
-			var replicaSet appsv1.ReplicaSet
-			if err := json.Unmarshal(req.Object.Raw, &replicaSet); err != nil {
-				klog.Errorf("Can't not unmarshal raw object: %v", err)
-				return &admissionv1.AdmissionResponse{
-					Result: &metav1.Status{
-						Code:    http.StatusBadRequest,
-						Message: err.Error(),
-					},
-				}
-			}
-			anotations := replicaSet.ObjectMeta.GetAnnotations()
-			newRS := replicaSet.DeepCopy()
-			ppodSpec := &newRS.Spec.Template.Spec
-
-			klog.Info("replicaSet metadata: ", replicaSet.ObjectMeta, "\n")
-			if !mutationRequired(anotations) {
-				klog.Info("No need to Mutate")
-				return &admissionv1.AdmissionResponse{
-					Allowed: true,
-				}
-			}
-
-			newPodSpec := mutateContainers(ppodSpec, anotations)
-
-			if logPatchedYAML {
-				klog.Info("\n---------begin mumated yaml---------")
-				bytes, err := json.Marshal(newPodSpec)
-				if err == nil {
-					yamlStr, err := yaml.JSONToYAML(bytes)
-					if err == nil {
-						klog.Info("\n" + string(yamlStr))
-					}
-				}
-				klog.Info("\n---------ended mumated yaml---------")
-			}
-
-			patch, err := jsondiff.Compare(replicaSet, newRS)
-			if err != nil {
-				klog.Errorf("json diff marshal error: %v", err)
-				return &admissionv1.AdmissionResponse{
-					Result: &metav1.Status{
-						Code:    http.StatusBadRequest,
-						Message: err.Error(),
-					},
-				}
-			}
-
-			klog.Info("\n---------JSON diff begins---------\n")
-			klog.Info(patch)
-			klog.Info("\n---------JSON diff ends---------\n")
-
-			patchBytes, err := json.MarshalIndent(patch, "", "    ")
-			if err != nil {
-				klog.Errorf("patch marshal error: %v", err)
-				return &admissionv1.AdmissionResponse{
-					Result: &metav1.Status{
-						Code:    http.StatusBadRequest,
-						Message: err.Error(),
-					},
-				}
-			}
+		var replicaSet appsv1.ReplicaSet
+		if err := json.Unmarshal(req.Object.Raw, &replicaSet); err != nil {
+			klog.Errorf("Can't not unmarshal raw object: %v", err)
 			return &admissionv1.AdmissionResponse{
-				Allowed: true,
-				Patch:   patchBytes,
-				PatchType: func() *admissionv1.PatchType {
-					pt := admissionv1.PatchTypeJSONPatch
-					return &pt
-				}(),
+				Result: &metav1.Status{
+					Code:    http.StatusBadRequest,
+					Message: err.Error(),
+				},
 			}
 		}
+		anotations := replicaSet.ObjectMeta.GetAnnotations()
+		newRS := replicaSet.DeepCopy()
+		ppodSpec := &newRS.Spec.Template.Spec
+
+		klog.Info("replicaSet metadata: ", replicaSet.ObjectMeta, "\n")
+		if !mutationRequired(anotations) {
+			klog.Info("No need to Mutate")
+			return &admissionv1.AdmissionResponse{
+				Allowed: true,
+			}
+		}
+
+		newPodSpec := mutateContainers(ppodSpec, anotations)
+
+		if logPatchedYAML {
+			klog.Info("\n---------begin mumated yaml---------")
+			bytes, err := json.Marshal(newPodSpec)
+			if err == nil {
+				yamlStr, err := yaml.JSONToYAML(bytes)
+				if err == nil {
+					klog.Info("\n" + string(yamlStr))
+				}
+			}
+			klog.Info("\n---------ended mumated yaml---------")
+		}
+
+		patch, err := jsondiff.Compare(replicaSet, newRS)
+		if err != nil {
+			klog.Errorf("json diff marshal error: %v", err)
+			return &admissionv1.AdmissionResponse{
+				Result: &metav1.Status{
+					Code:    http.StatusBadRequest,
+					Message: err.Error(),
+				},
+			}
+		}
+
+		klog.Info("\n---------JSON diff begins---------\n")
+		klog.Info(patch)
+		klog.Info("\n---------JSON diff ends---------\n")
+
+		patchBytes, err := json.MarshalIndent(patch, "", "    ")
+		if err != nil {
+			klog.Errorf("patch marshal error: %v", err)
+			return &admissionv1.AdmissionResponse{
+				Result: &metav1.Status{
+					Code:    http.StatusBadRequest,
+					Message: err.Error(),
+				},
+			}
+		}
+		return &admissionv1.AdmissionResponse{
+			Allowed: true,
+			Patch:   patchBytes,
+			PatchType: func() *admissionv1.PatchType {
+				pt := admissionv1.PatchTypeJSONPatch
+				return &pt
+			}(),
+		}
+
 	/*case "Pod":
 	var pod corev1.Pod
 	if err := json.Unmarshal(req.Object.Raw, &pod); err != nil {
