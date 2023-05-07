@@ -469,15 +469,15 @@ func mutationRequired(annotations map[string]string) bool {
 
 func mutateContainers(podSpec *corev1.PodSpec, annotations map[string]string) (result *corev1.PodSpec) {
 	INIT_ENV := []corev1.EnvVar{
-		corev1.EnvVar{
+		{
 			Name:  CONNECTION_STRING_NAME,
 			Value: annotations[INSIGHT_CONNSTR],
 		},
-		corev1.EnvVar{
+		{
 			Name:  ROLE_NAME_STRING_NAME,
 			Value: annotations[INSIGHT_ROLE],
 		},
-		corev1.EnvVar{
+		{
 			Name:  JAVA_TOOL_OPTIONS_ENV_NAME,
 			Value: JAVA_TOOL_OPTIONS,
 		},
@@ -493,27 +493,20 @@ func mutateContainers(podSpec *corev1.PodSpec, annotations map[string]string) (r
 		},
 	}
 
-	if len(podSpec.InitContainers) == 0 { // empty init container
-		podSpec.InitContainers = copyAgentAndConfigContainer
-		klog.Info("\npodSpec.InitContainers: ", podSpec.InitContainers, "\n")
-		klog.Info("\nmutate add initContainer success!")
-	} else { // update init container
-		// search init container by name
-		idxInitContainer := slices.IndexFunc(podSpec.InitContainers,
-			func(c corev1.Container) bool { return c.Name == INIT_NAME })
-		if idxInitContainer == -1 {
-			podSpec.InitContainers = append(podSpec.InitContainers, copyAgentAndConfigContainer...)
-
-		} else { // replace with new value
-			klog.Warning(INIT_NAME, ": init container already exists.\n")
-			podSpec.InitContainers[idxInitContainer] = copyAgentAndConfigContainer[0]
-			klog.Warning(INIT_NAME, ": init container new value: ",
-				podSpec.InitContainers[idxInitContainer], "\n")
-		}
-
-		klog.Info("\npodSpec.InitContainers: ", podSpec.InitContainers, "\n")
-		klog.Info("\nmutate add initContainer success!")
+	// search init container by name
+	idxInitContainer := slices.IndexFunc(podSpec.InitContainers,
+		func(c corev1.Container) bool { return c.Name == INIT_NAME })
+	if idxInitContainer == -1 {
+		podSpec.InitContainers = append(podSpec.InitContainers, copyAgentAndConfigContainer...)
+	} else { // replace with new value
+		klog.Warning(INIT_NAME, ": init container already exists.\n")
+		podSpec.InitContainers[idxInitContainer] = copyAgentAndConfigContainer[0]
+		klog.Warning(INIT_NAME, ": init container new value: ",
+			podSpec.InitContainers[idxInitContainer], "\n")
 	}
+
+	klog.Info("\npodSpec.InitContainers: ", podSpec.InitContainers, "\n")
+	klog.Info("\nmutate add initContainer success!")
 
 	for index, container := range podSpec.Containers {
 		// add connection string to env
