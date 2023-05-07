@@ -279,7 +279,9 @@ func (s *WebhookServer) mutateJsonDiff(ar *admissionv1.AdmissionReview) *admissi
 	// Deployment、Service -> annotations： AnnotationMutateKey， AnnotationStatusKey
 	req := ar.Request
 
-	var ()
+	var (
+		patchBytes []byte
+	)
 
 	klog.Infof("AdmissionReview for Kind=%s, Namespace=%s Name=%s UID=%s",
 		req.Kind.Kind, req.Namespace, req.Name, req.UID)
@@ -337,7 +339,7 @@ func (s *WebhookServer) mutateJsonDiff(ar *admissionv1.AdmissionReview) *admissi
 		klog.Info(patch)
 		klog.Info("\n---------JSON diff ends---------\n")
 
-		patchBytes, err := json.MarshalIndent(patch, "", "    ")
+		patchBytes, err = json.MarshalIndent(patch, "", "    ")
 		if err != nil {
 			klog.Errorf("patch marshal error: %v", err)
 			return &admissionv1.AdmissionResponse{
@@ -346,14 +348,6 @@ func (s *WebhookServer) mutateJsonDiff(ar *admissionv1.AdmissionReview) *admissi
 					Message: err.Error(),
 				},
 			}
-		}
-		return &admissionv1.AdmissionResponse{
-			Allowed: true,
-			Patch:   patchBytes,
-			PatchType: func() *admissionv1.PatchType {
-				pt := admissionv1.PatchTypeJSONPatch
-				return &pt
-			}(),
 		}
 
 	case "ReplicaSet":
@@ -408,7 +402,7 @@ func (s *WebhookServer) mutateJsonDiff(ar *admissionv1.AdmissionReview) *admissi
 		klog.Info(patch)
 		klog.Info("\n---------JSON diff ends---------\n")
 
-		patchBytes, err := json.MarshalIndent(patch, "", "    ")
+		patchBytes, err = json.MarshalIndent(patch, "", "    ")
 		if err != nil {
 			klog.Errorf("patch marshal error: %v", err)
 			return &admissionv1.AdmissionResponse{
@@ -417,14 +411,6 @@ func (s *WebhookServer) mutateJsonDiff(ar *admissionv1.AdmissionReview) *admissi
 					Message: err.Error(),
 				},
 			}
-		}
-		return &admissionv1.AdmissionResponse{
-			Allowed: true,
-			Patch:   patchBytes,
-			PatchType: func() *admissionv1.PatchType {
-				pt := admissionv1.PatchTypeJSONPatch
-				return &pt
-			}(),
 		}
 
 	/*case "Pod":
@@ -445,6 +431,15 @@ func (s *WebhookServer) mutateJsonDiff(ar *admissionv1.AdmissionReview) *admissi
 				Message: fmt.Sprintf("Can't handle the kind(%s) object", req.Kind.Kind),
 			},
 		}
+	}
+
+	return &admissionv1.AdmissionResponse{
+		Allowed: true,
+		Patch:   patchBytes,
+		PatchType: func() *admissionv1.PatchType {
+			pt := admissionv1.PatchTypeJSONPatch
+			return &pt
+		}(),
 	}
 
 }
