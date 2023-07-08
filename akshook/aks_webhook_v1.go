@@ -413,18 +413,71 @@ func (s *WebhookServer) mutateJsonDiff(ar *admissionv1.AdmissionReview) *admissi
 			}
 		}
 
-	/*case "Pod":
-	var pod corev1.Pod
-	if err := json.Unmarshal(req.Object.Raw, &pod); err != nil {
-		klog.Errorf("Can't not unmarshal raw object: %v", err)
-		return &admissionv1.AdmissionResponse{
-			Result: &metav1.Status{
-				Code:    http.StatusBadRequest,
-				Message: err.Error(),
-			},
+	case "Pod":
+		var pod corev1.Pod
+		if err := json.Unmarshal(req.Object.Raw, &pod); err != nil {
+			klog.Errorf("Can't not unmarshal raw object: %v", err)
+			return &admissionv1.AdmissionResponse{
+				Result: &metav1.Status{
+					Code:    http.StatusBadRequest,
+					Message: err.Error(),
+				},
+			}
 		}
-	}*/
+
+		anotations := pod.ObjectMeta.GetAnnotations()
+		newPod := pod.DeepCopy()
+		ppodSpec := &newPod.Spec
+
+		klog.Info("pod metadata: ", pod.ObjectMeta, "\n")
+		if !mutationRequired(anotations) {
+			klog.Info("No need to Mutate")
+			return &admissionv1.AdmissionResponse{
+				Allowed: true,
+			}
+		}
+
+		newPodSpec := mutateContainers(ppodSpec, anotations)
+
+		if logPatchedYAML {
+			klog.Info("\n---------begin mumated yaml---------")
+			bytes, err := json.Marshal(newPodSpec)
+			if err == nil {
+				yamlStr, err := yaml.JSONToYAML(bytes)
+				if err == nil {
+					klog.Info("\n" + string(yamlStr))
+				}
+			}
+			klog.Info("\n---------ended mumated yaml---------")
+		}
+
+		patch, err := jsondiff.Compare(pod, newPod)
+		if err != nil {
+			klog.Errorf("json diff marshal error: %v", err)
+			return &admissionv1.AdmissionResponse{
+				Result: &metav1.Status{
+					Code:    http.StatusBadRequest,
+					Message: err.Error(),
+				},
+			}
+		}
+
+		klog.Info("\n---------JSON diff begins---------\n")
+		klog.Info(patch)
+		klog.Info("\n---------JSON diff ends---------\n")
+
+		patchBytes, err = json.MarshalIndent(patch, "", "    ")
+		if err != nil {
+			klog.Errorf("patch marshal error: %v", err)
+			return &admissionv1.AdmissionResponse{
+				Result: &metav1.Status{
+					Code:    http.StatusBadRequest,
+					Message: err.Error(),
+				},
+			}
+		}
 	default:
+		klog.Warningf("Can't handle the kind(%s) object", req.Kind.Kind)
 		return &admissionv1.AdmissionResponse{
 			Result: &metav1.Status{
 				Code:    http.StatusBadRequest,
