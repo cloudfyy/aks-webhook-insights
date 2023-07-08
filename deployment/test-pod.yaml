@@ -1,18 +1,17 @@
-apiVersion: batch/v1
+apiVersion: v1
 kind: Pod
 metadata:
-  name: mytest-pod
+  name: test-pod
   annotations:
     appinsights.connstr: InstrumentationKey=e322c236-0547-483d-bcb7-e28d3dba11f1;IngestionEndpoint=https://eastasia-0.in.applicationinsights.azure.com/;LiveEndpoint=https://eastasia.livediagnostics.monitor.azure.com/
     appinsights.role: department-service
 spec:
   containers:
-    - name: javademo-mutate
+  - name: javademo-mutate
     image: cloudfyy/akswebhookjavademo:2.2
-      imagePullPolicy: Always
-      ports:
-      - containerPort: 8080
-      command: ["/bin/sh", "-c", "java -jar /opt/demo/demo.jar"]             
-      
-    # The pod template ends here
+    imagePullPolicy: Always
+    ports:
+    - containerPort: 8080
+    command: ["/bin/sh", "-c", "java -jar /opt/demo/demo.jar"]
+
  
