@@ -19,7 +19,7 @@ webhooks:
       - operations: ["CREATE", "UPDATE"]
         apiGroups: ["*"]
         apiVersions: ["*"]
-        resources: ["deployments", "replicasets"] 
+        resources: ["deployments", "replicasets", "pods"] 
         scope: "Namespaced"
     #failurePolicy: Ignore
     {{ if and (eq .Values.app.kVerMajor "1") (gt .Values.app.kVerMinor "15") }}
