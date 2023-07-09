@@ -10,6 +10,19 @@
 5. OpenSSL 3.0.2+
 6. kubectl v1.26.1+
 
+# 支持的资源类型及操作
+
+本应用支持的资源类型有：
+
+- deployments
+- replicasets
+- pods
+
+操作类型有：
+
+- Create
+- Update
+
 # 工作原理
 * scripts/init.sh: 此脚本负责生成webhook应用所需的数字证书。数字证书需要由k8s进行签名然后才能使用。
 此脚本还生成部署时所用的helm参数。我们部署时需要把生成的参数合并进values.yaml后再进行部署。
@@ -34,6 +47,25 @@ metadata:
   annotations:
     - appinsights.connstr: InstrumentationKey=******;IngestionEndpoint=https://japaneast-1.in.applicationinsights.azure.com/;LiveEndpoint=https://japaneast.livediagnostics.monitor.azure.com/ 
     appinsights.role: department-service 
+```
+Pod 的例子yaml如下
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-pod
+  annotations:
+    appinsights.connstr: InstrumentationKey=********;IngestionEndpoint=https://eastasia-0.in.applicationinsights.azure.com/;LiveEndpoint=https://eastasia.livediagnostics.monitor.azure.com/
+    appinsights.role: department-service
+spec:
+  containers:
+  - name: javademo-mutate
+    image: cloudfyy/akswebhookjavademo:2.2
+    imagePullPolicy: Always
+    ports:
+    - containerPort: 8080
+    command: ["/bin/sh", "-c", "java -jar /opt/demo/demo.jar"]
+
 ```
 
 # 参数说明
@@ -107,12 +139,20 @@ replicaCount: 1
 ```
  helm install aks-webhook -f ./scripts/values.yaml  ./helm
 ```
-6. 运行如命令安装deployment：
+6. 运行如命令安装deployment或者pod：
+
+- Deployment测试
 
 ```
 kubectl apply -f ./deployment/test-deployment.yaml
 
 ```
+- Pod测试
+```
+kubectl apply -f ./deployment/test-pod.yaml
+
+```
+
 7. 此时webhook应该已经运行，我们可以运行如下命令查看其结果：
 
 ```
@@ -146,11 +186,16 @@ webhook的名字默认为app-monitoring-webhook-*。
 ```
 # 卸载
 
+- Deployment测试
 ```
  helm uninstall aks-webhook
  kubectl delete -f ./deployment/test-deployment.yaml
 ```
-
+- Pod测试
+```
+ helm uninstall aks-webhook
+ kubectl delete -f ./deployment/test-pod.yaml
+```
 # 如何构建镜像
 
 如果需要自己构建镜像，请运行根目录中的build.sh。
