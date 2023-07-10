@@ -12,6 +12,6 @@ spec:
     imagePullPolicy: Always
     ports:
     - containerPort: 8080
-    command: ["/bin/sh", "-c", "java -jar /opt/demo/demo.jar"]
+    command: ["/bin/sh", "-c", "java -jar /app/demo.jar"]
 
  
