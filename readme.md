@@ -86,7 +86,7 @@ helm有如下参数：
 |kVerRev|Kubernetes修订版本号|
 |replicaCount|webhook的pod数目|
 |JAVA_TOOL_OPTIONS|此参数会传递到受监控的容器内。我们在此参数中设置java agent。比如：-javaagent:/config/applicationinsights-agent-3.4.10.jar 版本默认为3.4.10。版本信息可以从以下地址获取：https://github.com/microsoft/ApplicationInsights-Java/releases|
-
+|UpdateContainerCmd|是否在container的command命令中添加JAVA_TOOL_OPTIONS参数，默认值 为false|
 
 # 部署方法
 

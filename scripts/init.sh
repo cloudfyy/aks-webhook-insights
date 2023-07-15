@@ -13,6 +13,7 @@ image="cloudfyy/akswebhook:${imgver}"
 agents="cloudfyy/application-insights-java-agent:${imgver}"
 AGENT_RELEASE="3.4.14"
 JAVA_TOOL_OPTIONS="-javaagent:/opt/aiagent/applicationinsights-agent-${AGENT_RELEASE}.jar"
+UpdateContainerCmd=false
 
 if [ ! -x "$(command -v kubectl)" ]; then
     echo "kubectl not found"
@@ -143,5 +144,6 @@ app:
   kVerRev: "${kVerRev}"
   caBundle: "${CA_BUNDLE}"
   JAVA_TOOL_OPTIONS: "${JAVA_TOOL_OPTIONS}"
+  UpdateContainerCmd: ${UpdateContainerCmd}
 replicaCount: ${replicaCount}
 EOF

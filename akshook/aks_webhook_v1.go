@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/ghodss/yaml"
 	"github.com/wI2L/jsondiff"
@@ -64,7 +65,8 @@ var (
 	// JAVA_START_PACKAGE = os.Getenv("JAVA_START_PACKAGE")
 	// JAVA_AGENT_OPTION  = "-javaagent:/config/applicationinsights-agent-" + JAVA_AGENT_VERSION + ".jar"
 	// JAVA_START_PACKAGE = " -jar department-service-1.2-SNAPSHOT.jar"
-	JAVA_TOOL_OPTIONS = os.Getenv(JAVA_TOOL_OPTIONS_ENV_NAME)
+	JAVA_TOOL_OPTIONS          = os.Getenv(JAVA_TOOL_OPTIONS_ENV_NAME)
+	UpdateContainerCmd, covErr = strconv.ParseBool(os.Getenv("UpdateContainerCmd"))
 )
 
 type AksWebhookParam struct {
@@ -566,7 +568,7 @@ func mutateContainers(podSpec *corev1.PodSpec, annotations map[string]string) (r
 			klog.Info("CONNECTION_STRING enviornment variable new value: ", container.Env[idxConnectionStringEnv].Value)
 		}
 
-		// add connection string to env
+		// add role name string to env
 		idxRoleNameEnv := slices.IndexFunc(container.Env,
 			func(e corev1.EnvVar) bool { return e.Name == ROLE_NAME_STRING_NAME })
 		if idxRoleNameEnv == -1 {
@@ -590,24 +592,33 @@ func mutateContainers(podSpec *corev1.PodSpec, annotations map[string]string) (r
 			klog.Info("JAVA_TOOL_OPTIONS enviornment variable new value: ", container.Env[idxJavaToolOptionsEnv].Value)
 		}
 
-		idxJInitVolMount := slices.IndexFunc(container.VolumeMounts,
+		idxInitVolMount := slices.IndexFunc(container.VolumeMounts,
 			func(v corev1.VolumeMount) bool { return v.Name == VOLUME_NAME })
-		if idxJInitVolMount == -1 {
+		if idxInitVolMount == -1 {
 			container.VolumeMounts = append(container.VolumeMounts, INIT_VOLMOUNT...)
 		} else { // replace with new value
 			klog.Warning(VOLUME_NAME, ": volume already exists.")
-			container.VolumeMounts[idxJInitVolMount] = INIT_VOLMOUNT[0]
-			klog.Warning(VOLUME_NAME, ": volume new value: ", container.VolumeMounts[idxJInitVolMount])
+			container.VolumeMounts[idxInitVolMount] = INIT_VOLMOUNT[0]
+			klog.Warning(VOLUME_NAME, ": volume new value: ", container.VolumeMounts[idxInitVolMount])
 		}
 
+		// update cmd if necessary
+		if UpdateContainerCmd {
+			klog.Info("container commands: ", container.Command)
+			// search -javaagent:
+			idxJagentCmd := slices.IndexFunc(container.Command,
+				func(v string) bool { return strings.Contains(v, "-javaagent:") })
+			if idxJagentCmd == -1 {
+				container.Command = append(container.Command, JAVA_TOOL_OPTIONS)
+			} else {
+				klog.Warning(JAVA_TOOL_OPTIONS, ": already exists.")
+				container.Command[idxJagentCmd] = JAVA_TOOL_OPTIONS
+				klog.Warning(VOLUME_NAME, ": -javaagent new value: ", container.Command[idxJagentCmd])
+			}
+		}
 		podSpec.Containers[index] = container
 
 	}
-	//for _, container := range deploy.Containers {
-	//klog.Info("container commands: ", container.Command)
-	//klog.Info("container volume mounts: ", container.VolumeMounts)
-	//}
-	//klog.Info("\nmutate Containers command success!")
 
 	klog.Info("\nmutate Volumes command...")
 	idxVolume := slices.IndexFunc(podSpec.Volumes,
