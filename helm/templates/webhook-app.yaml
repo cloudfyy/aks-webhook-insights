@@ -40,7 +40,7 @@ spec:
            - name: JAVA_TOOL_OPTIONS
              value: {{ .Values.app.JAVA_TOOL_OPTIONS}}
            - name: UpdateContainerCmd
-             value: {{ .Values.app.UpdateContainerCmd}}
+             value: "{{ .Values.app.UpdateContainerCmd}}"
           ports:
             - containerPort: 1337
           resources:
