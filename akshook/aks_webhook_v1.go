@@ -285,6 +285,16 @@ func (s *WebhookServer) mutateJsonDiff(ar *admissionv1.AdmissionReview) *admissi
 		patchBytes []byte
 	)
 
+	if covErr != nil {
+		klog.Error("Error in UpdateContainerCmd settings:", covErr)
+		return &admissionv1.AdmissionResponse{
+			Result: &metav1.Status{
+				Code:    http.StatusInternalServerError,
+				Message: covErr.Error(),
+			},
+		}
+	}
+
 	klog.Infof("AdmissionReview for Kind=%s, Namespace=%s Name=%s UID=%s",
 		req.Kind.Kind, req.Namespace, req.Name, req.UID)
 
