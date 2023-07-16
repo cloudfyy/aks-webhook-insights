@@ -141,13 +141,13 @@ replicaCount: 1
 ```
 6. 运行如命令安装deployment或者pod：
 
-- Deployment测试
+- Deployment测试场景
 
 ```
 kubectl apply -f ./deployment/test-deployment.yaml
 
 ```
-- Pod测试
+- Pod测试场景
 ```
 kubectl apply -f ./deployment/test-pod.yaml
 
@@ -155,10 +155,16 @@ kubectl apply -f ./deployment/test-pod.yaml
 
 7. 此时webhook应该已经运行，我们可以运行如下命令查看其结果：
 
+- Deployment
 ```
 kubectl get deploy java-test-deploy -o yaml
 ```
 
+- Pod
+
+```
+kubectl get pod test-pod -o yaml
+```
 8. 如果查看java测试pod，其输出如下：
 
 ![测试成功](/img/success.png?raw=true "测试成功")
@@ -186,12 +192,12 @@ webhook的名字默认为app-monitoring-webhook-*。
 ```
 # 卸载
 
-- Deployment测试
+- Deployment测试场景
 ```
  helm uninstall aks-webhook
  kubectl delete -f ./deployment/test-deployment.yaml
 ```
-- Pod测试
+- Pod测试场景
 ```
  helm uninstall aks-webhook
  kubectl delete -f ./deployment/test-pod.yaml
