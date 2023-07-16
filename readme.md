@@ -147,6 +147,12 @@ replicaCount: 1
 kubectl apply -f ./deployment/test-deployment.yaml
 
 ```
+- ReplicaSet测试场景
+
+```
+kubectl apply -f ./deployment/test-rs.yaml
+
+```
 - Pod测试场景
 ```
 kubectl apply -f ./deployment/test-pod.yaml
@@ -158,6 +164,11 @@ kubectl apply -f ./deployment/test-pod.yaml
 - Deployment
 ```
 kubectl get deploy java-test-deploy -o yaml
+```
+
+- Replicatset
+```
+kubectl get rs test-rs -o yaml
 ```
 
 - Pod
@@ -196,6 +207,11 @@ webhook的名字默认为app-monitoring-webhook-*。
 ```
  helm uninstall aks-webhook
  kubectl delete -f ./deployment/test-deployment.yaml
+```
+- Replicaset测试场景
+```
+ helm uninstall aks-webhook
+ kubectl delete -f ./deployment/test-rs.yaml
 ```
 - Pod测试场景
 ```
