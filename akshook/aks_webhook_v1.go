@@ -24,8 +24,8 @@ import (
 
 const (
 	JAVA_TOOL_OPTIONS_ENV_NAME = "JAVA_TOOL_OPTIONS"
-	CONNECTION_STRING_NAME     = "appinsights.connstr"
-	ROLE_NAME_STRING_NAME      = "appinsights.role"
+	CONNECTION_STRING_NAME     = "CONNECTION_STRING"
+	ROLE_NAME_STRING_NAME      = "ROLE_NAME"
 	VOLUME_NAME                = "appinsights-config"
 	INSIGHT_CONNSTR            = "appinsights.connstr"
 	INSIGHT_ROLE               = "appinsights.role"
@@ -151,7 +151,7 @@ func (s *WebhookServer) Handler(writer http.ResponseWriter, request *http.Reques
 	}
 }
 
-func (s *WebhookServer) mutatePods(ar *admissionv1.AdmissionReview) *admissionv1.AdmissionResponse {
+/*func (s *WebhookServer) mutatePods(ar *admissionv1.AdmissionReview) *admissionv1.AdmissionResponse {
 
 	klog.Infof("MutatePods AdmissionReview for Kind=%s, Namespace=%s Name=%s UID=%s",
 		ar.Request.Kind.Kind, ar.Request.Namespace, ar.Request.Name, ar.Request.UID)
@@ -275,7 +275,7 @@ func (s *WebhookServer) mutatePods(ar *admissionv1.AdmissionReview) *admissionv1
 		Patch:     patchBytes,
 		PatchType: &patchType,
 	}
-}
+}*/
 
 func (s *WebhookServer) mutateJsonDiff(ar *admissionv1.AdmissionReview) *admissionv1.AdmissionResponse {
 	// Deployment、Service -> annotations： AnnotationMutateKey， AnnotationStatusKey
