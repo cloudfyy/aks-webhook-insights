@@ -12,7 +12,7 @@ replicaCount="1"
 image="cloudfyy/akswebhook:${imgver}"
 agents="cloudfyy/application-insights-java-agent:${imgver}"
 AGENT_RELEASE="3.4.14"
-JAVA_TOOL_OPTIONS="-javaagent:/opt/aiagent/applicationinsights-agent-${AGENT_RELEASE}.jar"
+JAVA_TOOL_OPTIONS="-javaagent:/config/applicationinsights-agent-${AGENT_RELEASE}.jar"
 UpdateContainerCmd="false"
 
 if [ ! -x "$(command -v kubectl)" ]; then
