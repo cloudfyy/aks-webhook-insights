@@ -1,4 +1,4 @@
-# aks-webhook-insights
+# aks-webhook-insights [中文版](./readme_cn.md)
 A codeless AKS Mutate Admission Webhook for Java Application 
 
 # Prerequisuites
